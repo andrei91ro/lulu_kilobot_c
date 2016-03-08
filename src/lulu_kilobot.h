@@ -20,15 +20,17 @@
  */
 typedef enum {
     MOTION_STOP,
-    MOTION_FORWARD,
+    MOTION_STRAIGHT,
     MOTION_LEFT,
     MOTION_RIGHT
 } motion_t;
 
 typedef enum {
+    COLOR_OFF = RGB(0, 0, 0),
     COLOR_RED = RGB(3, 0, 0),
     COLOR_GREEN = RGB(0, 3, 0),
     COLOR_BLUE = RGB(0, 0, 3)
+    //TODO add all basic colors used in lulu_kilobot.py
 } led_color_t;
 
 typedef struct {
@@ -36,8 +38,17 @@ typedef struct {
     uint8_t light,
             light_prev;
     motion_t current_motion_state;
+    led_color_t current_led_color;
+    sim_step_result_t sim_result;
 
 } USERDATA;
+
+#ifdef SIMULATOR
+    /* provide a text string for the simulator status bar about this bot */
+    static char botinfo_buffer[10000];
+    extern char* motionNames[];
+    extern char* colorNames[];
+#endif
 
 //TODO params need tunning
 #define PARAM_LIGHT_THRESHOLD 20
@@ -46,17 +57,24 @@ typedef struct {
 /**
  * @brief Process raw_state info received from sensors and populate the input module agents with significant objects
  *
- * @param mydata USERDATA structure that contains all relevant information about this Kilobot
+ * @param data USERDATA structure that contains all relevant information about this Kilobot
  */
-void procInputModule(USERDATA *mydata);
+void procInputModule(USERDATA *data);
 
 /**
  * @brief Process the objects present in the output module agents and transform them into commands that are executed by the Kilobot
  *
- * @param mydata USERDATA structure that contains all relevant information about this Kilobot
+ * @param data USERDATA structure that contains all relevant information about this Kilobot
  */
-void procOutputModule(USERDATA *mydata);
+void procOutputModule(USERDATA *data);
 
+/**
+ * @brief Process sensor data and transfer it to the input data structures for further processing and symbolic conversion
+ *
+ * @param data The USERDATA structure where the processed data will be stored
+ * @see procInputModule
+ */
+void getState(USERDATA *data);
 
 /**
  * @brief Set the motion direction
@@ -96,8 +114,6 @@ void loop();
 void setup();
 
 #ifdef SIMULATOR
-/* provide a text string for the simulator status bar about this bot */
-static char botinfo_buffer[10000];
 /**
  * @brief Prepares a status bar message for the simulator
  *
