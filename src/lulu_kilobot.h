@@ -26,12 +26,14 @@ typedef enum {
 } motion_t;
 
 typedef enum {
-    COLOR_OFF = RGB(0, 0, 0),
-    COLOR_RED = RGB(3, 0, 0),
-    COLOR_GREEN = RGB(0, 3, 0),
-    COLOR_BLUE = RGB(0, 0, 3)
+    COLOR_OFF,
+    COLOR_RED,
+    COLOR_GREEN,
+    COLOR_BLUE,
     //TODO add all basic colors used in lulu_kilobot.py
 } led_color_t;
+
+uint8_t colorValues[] = {RGB(0, 0, 0), RGB(3, 0, 0), RGB(0, 3, 0), RGB(0, 0, 3)};
 
 typedef struct {
     Pcolony_t pcol;

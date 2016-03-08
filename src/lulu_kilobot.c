@@ -51,7 +51,6 @@ void set_motion(motion_t dir_new)
 
 void procOutputModule(USERDATA *data) {
     #ifdef USING_AGENT_MOTION
-        printf("RUNNING AGENT MOTION");
         for (uint8_t obj_id = 0; obj_id < data->pcol.agents[AGENT_MOTION].obj.size; obj_id++)
             switch (data->pcol.agents[AGENT_MOTION].obj.items[obj_id]) {
                 case OBJECT_ID_M_0: set_motion(MOTION_STOP); break;
@@ -69,7 +68,7 @@ void procOutputModule(USERDATA *data) {
                 case OBJECT_ID_C_G: data->current_led_color = COLOR_GREEN; break;
                 case OBJECT_ID_C_B: data->current_led_color = COLOR_BLUE; break;
             }
-        set_color(data->current_led_color);
+        set_color(colorValues[data->current_led_color]);
     #endif
 }
 
@@ -77,14 +76,14 @@ void loop() {
     //if the previous step was the last one
     if (mydata->sim_result == SIM_STEP_RESULT_NO_MORE_EXECUTABLES) {
         //mark the end of the simulation and exit
-        set_color(COLOR_GREEN);
+        set_color(colorValues[COLOR_GREEN]);
         set_motion(MOTION_STOP);
         printi(("robot_uid %d: SIM_STEP_RESULT_NO_MORE_EXECUTABLES"));
         return;
     } else
     // if the previous step resulted in an error
     if (mydata->sim_result == SIM_STEP_RESULT_ERROR) {
-        set_color(COLOR_RED);
+        set_color(colorValues[COLOR_RED]);
         set_motion(MOTION_STOP);
         printi(("robot_uid %d: SIM_STEP_RESULT_ERROR"));
         return;
