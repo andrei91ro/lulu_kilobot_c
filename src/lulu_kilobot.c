@@ -97,6 +97,12 @@ void loop() {
 }
 
 void setup() {
+    //initialize the mydata structure
+    mydata->current_led_color = COLOR_OFF;
+    mydata->current_motion_state = MOTION_STOP;
+    mydata->sim_result = SIM_STEP_RESULT_FINISHED;
+    mydata->light = mydata->light_prev = 0;
+
     lulu_init(&mydata->pcol);
 }
 
