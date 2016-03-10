@@ -8,8 +8,8 @@
  */
 
 #include "lulu_kilobot.h"
-#include "debug.h"
 #include "instance.h"
+#include "debug_print.h"
 
 #ifdef SIMULATOR
     char* motionNames[] = {"stop", "straight", "left", "right"};
