@@ -12,6 +12,13 @@
 #ifndef LULU_KILOBOT_H
 #define LULU_KILOBOT_H
 
+//on the Kilobot, debug functions such as printf have to be specifically included with debug.h
+#ifdef DEBUG_PRINT
+    //enables UART serial module
+    #define DEBUG
+    #include "debug.h"
+#endif
+
 #include <kilombo.h> //for access to sensors, motors (includes kilolib.h)
 #include "lulu.h"
 

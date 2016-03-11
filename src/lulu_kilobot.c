@@ -78,14 +78,14 @@ void loop() {
         //mark the end of the simulation and exit
         set_color(colorValues[COLOR_GREEN]);
         set_motion(MOTION_STOP);
-        printi(("robot_uid %d: SIM_STEP_RESULT_NO_MORE_EXECUTABLES"));
+        printi(("robot_uid %d: SIM_STEP_RESULT_NO_MORE_EXECUTABLES", kilo_uid));
         return;
     } else
     // if the previous step resulted in an error
     if (mydata->sim_result == SIM_STEP_RESULT_ERROR) {
         set_color(colorValues[COLOR_RED]);
         set_motion(MOTION_STOP);
-        printi(("robot_uid %d: SIM_STEP_RESULT_ERROR"));
+        printi(("robot_uid %d: SIM_STEP_RESULT_ERROR", kilo_uid));
         return;
     }
 
@@ -119,7 +119,11 @@ char *cb_botinfo(void)
 
 int main() {
     kilo_init();
-
+    #ifdef DEBUG
+        // initialize serial module (only on Kilobot)
+	    debug_init();
+    #endif
+    //callbacks for Kilombo (resolve to empty functions if building for Kilobot)
     SET_CALLBACK(botinfo, cb_botinfo);
 
     kilo_start(setup, loop);
