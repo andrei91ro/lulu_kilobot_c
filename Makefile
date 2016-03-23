@@ -14,7 +14,7 @@ LULU_PCOL_SIM = $(LULU_PCOL_SIM_PATH)/sim.py
 # path to the lulu to C converter script
 LULU_C = /home/andrei/script_Python/lulu_c/lulu_c.py
 # path to one example instance file (can be set as an Environment variable to any Lulu formatted input file)
-LULU_INSTANCE_FILE = $(LULU_PCOL_SIM_PATH)/input_files/input_ag_decrement.txt
+LULU_INSTANCE_FILE = test_disperse.lulu pi_disperse 70 2
 # path to the LULU headers
 LULU_HEADERS = ../lulu/src
 # path to the LULU C library
@@ -36,9 +36,9 @@ ifeq ($(DEBUG),1)
   BFLAGS = -Wall -g -O0 -fbuiltin -DPCOL_SIM -DDEBUG_PRINT=0
 
   #compilation flags for simulated version
-  SIM_CFLAGS = -c -g -O0 -Wall -std=c99
+  SIM_CFLAGS = -c -g -O0 -Wall -std=c99 -DPCOL_SIM -DDEBUG_PRINT=0
   #linking flags for simulated version
-  SIM_LFLAGS = -lsim -lSDL -lm -ljansson
+  SIM_LFLAGS = -lsim -lSDL -lm -ljansson -DPCOL_SIM -DDEBUG_PRINT=0
 
   # compilation flags for kilobot (AVR) with serial message printing
   CFLAGS_AVR = -c -mmcu=atmega328p -Wall -gdwarf-2 -O3 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -DF_CPU=8000000 -DDEBUG_PRINT=0 -I$(KILOLIB_HEADERS) -DKILOBOT
@@ -49,13 +49,13 @@ ifeq ($(DEBUG),1)
   LULU_LIB_AVR = ../lulu/build_hex/lulu_debug.a
 else
   #release flags
-  CFLAGS = -Wall -g -O2 -fbuiltin -c -DPCOL_SIM -DDEBUG_PRINT=1
-  BFLAGS = -Wall -g -O2 -fbuiltin -DPCOL_SIM -DDEBUG_PRINT=1
+  CFLAGS = -Wall -g -O2 -fbuiltin -c -DPCOL_SIM
+  BFLAGS = -Wall -g -O2 -fbuiltin -DPCOL_SIM
 
   #compilation flags for simulated version
-  SIM_CFLAGS = -c -g -O2 -Wall -std=c99
+  SIM_CFLAGS = -c -g -O2 -Wall -std=c99 -DPCOL_SIM
   #linking flags for simulated version
-  SIM_LFLAGS = -lsim -lSDL -lm -ljansson
+  SIM_LFLAGS = -lsim -lSDL -lm -ljansson -DPCOL_SIM
 
   # compilation flags for kilobot (AVR) WITHOUT serial message printing
   CFLAGS_AVR = -c -mmcu=atmega328p -Wall -gdwarf-2 -O3 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -DF_CPU=8000000 -I$(KILOLIB_HEADERS) -DKILOBOT
