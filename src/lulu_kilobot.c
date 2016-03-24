@@ -49,6 +49,21 @@ void set_motion(motion_t dir_new)
 	mydata->current_motion_state = dir_new;
 }
 
+void forget_neighbors() {
+    for (uint8_t i = 0; i < MAX_NEIGHBORS; i++)
+        // if the deadline for forgeting this neighbor has passed
+        if (kilo_ticks >= mydata->neighbors[i].timexp_forget && mydata->neighbors[i].timexp_forget > 0) {
+            //decrease the number of neighbors
+            mydata->nr_neighbors = (mydata->nr_neighbors > 0)? mydata->nr_neighbors - 1: 0;
+            //re-initialize this neighbor
+            mydata->neighbors[i].uid = NO_ID;
+            mydata->neighbors[i].symbolic_id = NO_ID;
+            mydata->neighbors[i].distance = 0;
+            mydata->neighbors[i].distance_prev = 0;
+            mydata->neighbors[i].timexp_forget = 0;
+        }
+}
+
 void process_message() {
     uint8_t i, smallest_empty_id = MAX_NEIGHBORS;
 
@@ -57,24 +72,28 @@ void process_message() {
     uint8_t *data = RB_front().msg.data;
     uint8_t id = data[INDEX_MSG_OWNER_UID];
 
-    //in the same loop we check if id appears among the neighbors
-    //and also determine (if it exists) the first empty slot in the neighbor list
-    for (i = 0; i < mydata->nr_neighbors; i++)
+    //search for the robot uid in the current neighbor list
+    for (i = 0; i < MAX_NEIGHBORS; i++)
         if (mydata->neighbors[i].uid == id)
             break;
-        //// check if this is an empty slot and we haven't found the smallest_empty_id
-        //else if (mydata->neighbors[i].uid == 0 && smallest_empty_id == MAX_NEIGHBORS - 1)
-            //smallest_empty_id = i;
 
-    // if this neighbor was not found in the list
-    if (i >= mydata->nr_neighbors) {
-        //add it to the list into an empty slot
-        //i = smallest_empty_id;
-        //if we need to extend the current list of neighbors
-        //if (smallest_empty_id >= mydata->nr_neighbors && smallest_empty_id != MAX_NEIGHBORS)
-            mydata->nr_neighbors = (mydata->nr_neighbors < MAX_NEIGHBORS - 1)?mydata->nr_neighbors + 1: MAX_NEIGHBORS - 1;
+    //if the sender of this message was not found in the current list of neighbors
+    if (i == MAX_NEIGHBORS)
+        //check for an empty slot
+        for (i = 0; i < MAX_NEIGHBORS; i++)
+            if (mydata->neighbors[i].uid == NO_ID) {
+                //we will remember a new neighbor
+                mydata->nr_neighbors++;
+                break;
+            }
+
+    //if there was no empty slot
+    if (i == MAX_NEIGHBORS) {
+        printw(("kilo_uid: %d - no more empty slots for robot %d, skipping process_message()", kilo_uid, id));
+        return;
     }
 
+    //if we reach this step then i is a valid slot
     mydata->neighbors[i].uid = id;
     mydata->neighbors[i].symbolic_id = id - smallest_robot_uid;
     //if there is no previous recording of the distance to this neighbor
@@ -88,25 +107,30 @@ void process_message() {
         //save current distance
         mydata->neighbors[i].distance = distance;
     }
-    //record the time when this neighbor was processed
-    mydata->neighbors[i].timestamp = kilo_ticks;
+
+    //set the moment in the future when the robot will forget about this neighbor
+    mydata->neighbors[i].timexp_forget = kilo_ticks + FORGET_NEIGHBOR_INTERVAL;
 }
 
 void procInputModule() {
+    uint8_t i; //used for iterating through the neighbor list
+
     #ifdef USING_AGENT_MSG_DISTANCE
         for (uint8_t obj_id = 0; obj_id < mydata->pcol.n; obj_id++) {
-            if (mydata->pcol.agents[AGENT_MSG_DISTANCE].obj.items[obj_id] == OBJECT_ID_D_ALL) {
-                bool dist_big = TRUE;
-                for (uint8_t i = 0; i < mydata->nr_neighbors; i++)
-                    if (mydata->neighbors[i].distance < PARAM_DISTANCE_THRESHOLD) {
-                        dist_big = FALSE;
-                        break;
-                    }
-                if (dist_big || mydata->nr_neighbors == 0)
-                    replaceObjInMultisetObj(&mydata->pcol.agents[AGENT_MSG_DISTANCE].obj, OBJECT_ID_D_ALL, OBJECT_ID_B_ALL);
-                else
-                    replaceObjInMultisetObj(&mydata->pcol.agents[AGENT_MSG_DISTANCE].obj, OBJECT_ID_D_ALL, OBJECT_ID_S_ALL);
-            }
+            #ifdef USING_OBJECT_D_ALL
+                if (mydata->pcol.agents[AGENT_MSG_DISTANCE].obj.items[obj_id] == OBJECT_ID_D_ALL) {
+                    bool dist_big = TRUE;
+                    for (i = 0; i < MAX_NEIGHBORS; i++)
+                        if (mydata->neighbors[i].distance < PARAM_DISTANCE_THRESHOLD && mydata->neighbors[i].uid != NO_ID) {
+                            dist_big = FALSE;
+                            break;
+                        }
+                    if (dist_big || mydata->nr_neighbors == 0)
+                        replaceObjInMultisetObj(&mydata->pcol.agents[AGENT_MSG_DISTANCE].obj, OBJECT_ID_D_ALL, OBJECT_ID_B_ALL);
+                    else
+                        replaceObjInMultisetObj(&mydata->pcol.agents[AGENT_MSG_DISTANCE].obj, OBJECT_ID_D_ALL, OBJECT_ID_S_ALL);
+                }
+            #endif
         }
     #endif
 }
@@ -149,7 +173,7 @@ void message_rx(message_t* msg, distance_measurement_t* dist) {
 }
 
 void loop() {
-    printi(("\n-----------------------\n LOOP for robot %d\n", kilo_uid));
+    printd(("\n-----------------------\n LOOP for robot %d\n", kilo_uid));
     //if the previous step was the last one
     if (mydata->sim_result == SIM_STEP_RESULT_NO_MORE_EXECUTABLES) {
         //mark the end of the simulation and exit
@@ -162,9 +186,12 @@ void loop() {
     if (mydata->sim_result == SIM_STEP_RESULT_ERROR) {
         set_color(colorValues[COLOR_RED]);
         set_motion(MOTION_STOP);
-        printi(("robot_uid %d: SIM_STEP_RESULT_ERROR", kilo_uid));
+        printe(("robot_uid %d: SIM_STEP_RESULT_ERROR", kilo_uid));
         return;
     }
+
+    //remove old neighbors that haven't sent any recent message
+    forget_neighbors();
 
     //process the entire received message buffer
     while (!RB_empty()) {
@@ -202,7 +229,7 @@ void setup() {
             .symbolic_id = NO_ID,
             .distance = 0,
             .distance_prev = 0,
-            .timestamp = 0};
+            .timexp_forget = 0};
 
     //initialize message receive buffer
     RB_init();
@@ -212,11 +239,14 @@ void setup() {
 /* provide a text string for the simulator status bar about this bot */
 char *cb_botinfo(void)
 {
-  char *p = botinfo_buffer;
-  p += sprintf (p, "ID: %d, MOTION: %s, COLOR: %s \n", kilo_uid, motionNames[mydata->current_motion_state], colorNames[mydata->current_led_color]);
-  p += sprintf (p, "\n nr_neighbors: %d, neighbor[0].uid: %d neighbor[0].dist: %d", mydata->nr_neighbors, mydata->neighbors[0].uid, mydata->neighbors[0].distance);
+    char *p = botinfo_buffer;
+    p += sprintf (p, "ID: %d, MOTION: %s, COLOR: %s \n", kilo_uid, motionNames[mydata->current_motion_state], colorNames[mydata->current_led_color]);
 
-  return botinfo_buffer;
+    p += sprintf (p, "\n nr_neighbors = %d ", mydata->nr_neighbors);
+    for (uint8_t i = 0; i < MAX_NEIGHBORS; i++)
+        if (mydata->neighbors[i].uid != NO_ID)
+            p += sprintf (p, "n[%d]={%d, %d}, ", i, mydata->neighbors[i].uid, mydata->neighbors[i].distance);
+    return botinfo_buffer;
 }
 #endif
 

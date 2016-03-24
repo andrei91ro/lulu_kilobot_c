@@ -27,6 +27,8 @@
 
 //we define a NO_ID value for Neighbor_t.uid, because 0 can be used as a regular uid
 #define NO_ID 255
+#define FORGET_NEIGHBOR_INTERVAL 32 * 2 //forget neighbors if the last msg received was 32 * X seconds ago (1 second = 32 kiloticks)
+
 /**
  * @brief Define motion types
  */
@@ -59,7 +61,7 @@ typedef struct _Neighbor {
     uint8_t uid; //we use uint8_t for uid because all of our robots have kilo_uid well below UINT8_MAX (255)
     uint8_t symbolic_id;
     uint8_t distance, distance_prev;
-    uint32_t timestamp;
+    uint32_t timexp_forget;
 } Neighbor_t;
 
 /**
@@ -81,7 +83,8 @@ typedef struct {
     sim_step_result_t sim_result;
 
     Neighbor_t neighbors[MAX_NEIGHBORS];
-    uint8_t nr_neighbors;
+    uint8_t nr_neighbors,
+            neighbor_index;
 
     //transmitted message
     message_t msg_tx;
@@ -141,6 +144,13 @@ typedef struct {
 //TODO params need tunning
 #define PARAM_LIGHT_THRESHOLD 20
 #define PARAM_DISTANCE_THRESHOLD 55
+
+/**
+ * @brief Remove old neighbors from the neighbor array.
+ * Old neighbors are considered neighbors from which a message was received more than FORGET_NEIGHBOR_INTERVAL kilotics ago.
+ *
+ */
+void forget_neighbors();
 
 /**
  * @brief Process received data and transfer it to the Neighbor_t data structures for further processing and symbolic conversion
