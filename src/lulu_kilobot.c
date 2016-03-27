@@ -89,7 +89,7 @@ void process_message() {
 
     //if there was no empty slot
     if (i == MAX_NEIGHBORS) {
-        printw(("kilo_uid: %d - no more empty slots for robot %d, skipping process_message()", kilo_uid, id));
+        printw(("kilo_uid: %d - no slot for KB%d", kilo_uid, id));
         return;
     }
 
@@ -173,20 +173,19 @@ void message_rx(message_t* msg, distance_measurement_t* dist) {
 }
 
 void loop() {
-    printd(("\n-----------------------\n LOOP for robot %d\n", kilo_uid));
     //if the previous step was the last one
     if (mydata->sim_result == SIM_STEP_RESULT_NO_MORE_EXECUTABLES) {
         //mark the end of the simulation and exit
         set_color(colorValues[COLOR_GREEN]);
         set_motion(MOTION_STOP);
-        printi(("robot_uid %d: SIM_STEP_RESULT_NO_MORE_EXECUTABLES", kilo_uid));
+        printi(("kilo_uid %d: NO_MORE_EXEC", kilo_uid));
         return;
     } else
     // if the previous step resulted in an error
     if (mydata->sim_result == SIM_STEP_RESULT_ERROR) {
         set_color(colorValues[COLOR_RED]);
         set_motion(MOTION_STOP);
-        printe(("robot_uid %d: SIM_STEP_RESULT_ERROR", kilo_uid));
+        printe(("kilo_uid %d: ERROR", kilo_uid));
         return;
     }
 

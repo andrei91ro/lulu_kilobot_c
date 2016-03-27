@@ -7,6 +7,10 @@ AVROD = avr-objdump
 AVRUP = avrdude
 AVRSIZE = avr-size
 
+# optimization flags for AVR
+#AVR_OPTIM = -O3
+AVR_OPTIM = -Os -mcall-prologues
+
 # path to the LULU P colony simulator
 LULU_PCOL_SIM_PATH = /home/andrei/script_Python/lulu_pcol_sim
 # path to the LULU P colony simulator script
@@ -41,9 +45,9 @@ ifeq ($(DEBUG),1)
   SIM_LFLAGS = -lsim -lSDL -lm -ljansson -DPCOL_SIM -DDEBUG_PRINT=0
 
   # compilation flags for kilobot (AVR) with serial message printing
-  CFLAGS_AVR = -c -mmcu=atmega328p -Wall -gdwarf-2 -O3 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -DF_CPU=8000000 -DDEBUG_PRINT=0 -I$(KILOLIB_HEADERS) -DKILOBOT -Wl,-u,vfprintf -lprintf_min
+  CFLAGS_AVR = -c -mmcu=atmega328p -Wall -gdwarf-2 $(AVR_OPTIM) -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -DF_CPU=8000000 -DDEBUG_PRINT=0 -I$(KILOLIB_HEADERS) -DKILOBOT -Wl,-u,vfprintf -lprintf_min
   # linking flags for kilobot (AVR) with serial message printing
-  BFLAGS_AVR = -mmcu=atmega328p -Wall -gdwarf-2 -O3 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -DF_CPU=8000000 -DDEBUG_PRINT=0 -I$(KILOLIB_HEADERS) -DKILOBOT -Wl,-u,vfprintf -lprintf_min
+  BFLAGS_AVR = -mmcu=atmega328p -Wall -gdwarf-2 $(AVR_OPTIM) -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -DF_CPU=8000000 -DDEBUG_PRINT=0 -I$(KILOLIB_HEADERS) -DKILOBOT -Wl,-u,vfprintf -lprintf_min
 
   # path to the LULU C library for AVR (with DEBUG functions included)
   LULU_LIB_AVR = ../lulu/build_hex/lulu_debug.a
@@ -58,9 +62,9 @@ else
   SIM_LFLAGS = -lsim -lSDL -lm -ljansson -DPCOL_SIM
 
   # compilation flags for kilobot (AVR) WITHOUT serial message printing
-  CFLAGS_AVR = -c -mmcu=atmega328p -Wall -gdwarf-2 -O3 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -DF_CPU=8000000 -I$(KILOLIB_HEADERS) -DKILOBOT
+  CFLAGS_AVR = -c -mmcu=atmega328p -Wall -gdwarf-2 $(AVR_OPTIM) -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -DF_CPU=8000000 -I$(KILOLIB_HEADERS) -DKILOBOT
   # linking flags for kilobot (AVR) WITHOUT serial message printing
-  BFLAGS_AVR = -mmcu=atmega328p -Wall -gdwarf-2 -O3 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -DF_CPU=8000000 -I$(KILOLIB_HEADERS) -DKILOBOT
+  BFLAGS_AVR = -mmcu=atmega328p -Wall -gdwarf-2 $(AVR_OPTIM) -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -DF_CPU=8000000 -I$(KILOLIB_HEADERS) -DKILOBOT
 
   # path to the LULU C library for AVR
   LULU_LIB_AVR = ../lulu/build_hex/lulu.a
