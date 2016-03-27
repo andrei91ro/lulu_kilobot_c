@@ -41,9 +41,9 @@ ifeq ($(DEBUG),1)
   SIM_LFLAGS = -lsim -lSDL -lm -ljansson -DPCOL_SIM -DDEBUG_PRINT=0
 
   # compilation flags for kilobot (AVR) with serial message printing
-  CFLAGS_AVR = -c -mmcu=atmega328p -Wall -gdwarf-2 -O3 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -DF_CPU=8000000 -DDEBUG_PRINT=0 -I$(KILOLIB_HEADERS) -DKILOBOT
+  CFLAGS_AVR = -c -mmcu=atmega328p -Wall -gdwarf-2 -O3 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -DF_CPU=8000000 -DDEBUG_PRINT=0 -I$(KILOLIB_HEADERS) -DKILOBOT -Wl,-u,vfprintf -lprintf_min
   # linking flags for kilobot (AVR) with serial message printing
-  BFLAGS_AVR = -mmcu=atmega328p -Wall -gdwarf-2 -O3 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -DF_CPU=8000000 -DDEBUG_PRINT=0 -I$(KILOLIB_HEADERS) -DKILOBOT
+  BFLAGS_AVR = -mmcu=atmega328p -Wall -gdwarf-2 -O3 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -DF_CPU=8000000 -DDEBUG_PRINT=0 -I$(KILOLIB_HEADERS) -DKILOBOT -Wl,-u,vfprintf -lprintf_min
 
   # path to the LULU C library for AVR (with DEBUG functions included)
   LULU_LIB_AVR = ../lulu/build_hex/lulu_debug.a
