@@ -65,7 +65,7 @@ void forget_neighbors() {
 }
 
 void process_message() {
-    uint8_t i, smallest_empty_id = MAX_NEIGHBORS;
+    uint8_t i;
 
 
     uint8_t distance = estimate_distance(&RB_front().dist);
@@ -220,6 +220,10 @@ void setup() {
 
     //initialize Pcolony
     lulu_init(&mydata->pcol);
+
+    #ifdef NEEDING_WILDCARD_EXPANSION
+        expand_pcolony(&mydata->pcol, kilo_uid);
+    #endif
 
     //init neighbors
     for (uint8_t i = 0; i < MAX_NEIGHBORS; i++)
