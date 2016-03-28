@@ -176,16 +176,16 @@ void loop() {
     //if the previous step was the last one
     if (mydata->sim_result == SIM_STEP_RESULT_NO_MORE_EXECUTABLES) {
         //mark the end of the simulation and exit
-        set_color(colorValues[COLOR_GREEN]);
+        set_color(RGB(0, 2, 0));
         set_motion(MOTION_STOP);
         printi(("kilo_uid %d: NO_MORE_EXEC", kilo_uid));
         return;
     } else
     // if the previous step resulted in an error
     if (mydata->sim_result == SIM_STEP_RESULT_ERROR) {
-        set_color(colorValues[COLOR_RED]);
+        set_color(RGB(2, 0, 0));
         set_motion(MOTION_STOP);
-        printe(("kilo_uid %d: ERROR", kilo_uid));
+        //we don't print any error message here because we wouldn't be able to read the LULU error because this continuous print
         return;
     }
 
