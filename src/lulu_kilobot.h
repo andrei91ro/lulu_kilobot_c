@@ -28,6 +28,7 @@
 //we define a NO_ID value for Neighbor_t.uid, because 0 can be used as a regular uid
 #define NO_ID 255
 #define FORGET_NEIGHBOR_INTERVAL 32 * 2 //forget neighbors if the last msg received was 32 * X seconds ago (1 second = 32 kiloticks)
+#define SLEEP_BETWEEN_SIMSTEPS_INTERVAL 3 //the number of kiloticks to wait before executing the next Lulu simulation step
 
 /**
  * @brief Define motion types
@@ -92,6 +93,12 @@ typedef struct {
     //receive messages ring buffer (taken from kilombo/examples/gradient2)
     uint8_t RXHead, RXTail;
     Received_message_t RXBuffer[RB_SIZE];
+
+#ifdef KILOBOT
+    //the real kilobot executes Lulu simulation steps very fast so most of the time the engines stay at spinup rpm
+    //and this results in chaotic movement of the robots
+    uint32_t tickxp_wait_lulu_simstep;
+#endif
 } USERDATA;
 
 /*-------------------- RING BUFFER DEFINITION ---------------------------*/
