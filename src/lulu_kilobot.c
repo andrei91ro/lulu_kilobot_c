@@ -125,7 +125,8 @@ void procInputModule() {
                             dist_big = FALSE;
                             break;
                         }
-                    if (dist_big || mydata->nr_neighbors == 0)
+                    //if (dist_big || mydata->nr_neighbors == 0)
+                    if (dist_big)
                         replaceObjInMultisetObj(&mydata->pcol.agents[AGENT_MSG_DISTANCE].obj, OBJECT_ID_D_ALL, OBJECT_ID_B_ALL);
                     else
                         replaceObjInMultisetObj(&mydata->pcol.agents[AGENT_MSG_DISTANCE].obj, OBJECT_ID_D_ALL, OBJECT_ID_S_ALL);
@@ -198,18 +199,15 @@ void loop() {
         RB_popfront();
     }
 
-#ifdef KILOBOT
-    //prevent the real kilobot from moving chaotically because of a too high sim step execution speed
-    if (kilo_ticks < mydata->tickxp_wait_lulu_simstep && mydata->tickxp_wait_lulu_simstep != 0)
-        return;
-    else
-        mydata->tickxp_wait_lulu_simstep = kilo_ticks + SLEEP_BETWEEN_SIMSTEPS_INTERVAL;
-#endif
     //transform sensor input into symbolic objects
     procInputModule();
     mydata->sim_result = pcolony_runSimulationStep(&mydata->pcol);
     //transform symbolic objects into effector commands
     procOutputModule();
+#ifdef KILOBOT
+    //prevent the real kilobot from moving chaotically because of a too high sim step execution speed
+    delay(SLEEP_MS_BETWEEN_SIMSTEPS);
+#endif
 }
 
 void setup() {
@@ -243,11 +241,6 @@ void setup() {
 
     //initialize message receive buffer
     RB_init();
-
-#ifdef KILOBOT
-    //schedule the next sim step to take place after
-    mydata->tickxp_wait_lulu_simstep = kilo_ticks + SLEEP_BETWEEN_SIMSTEPS_INTERVAL;
-#endif
 }
 
 #ifdef SIMULATOR
