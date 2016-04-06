@@ -26,7 +26,7 @@
 #define RB_SIZE 8 //ring buffer size
 
 //we define a NO_ID value for Neighbor_t.uid, because 0 can be used as a regular uid
-#define NO_ID 255
+#define NO_ID UINT16_MAX
 #define FORGET_NEIGHBOR_INTERVAL 32 * 2 //forget neighbors if the last msg received was 32 * X seconds ago (1 second = 32 kiloticks)
 #define SLEEP_MS_BETWEEN_SIMSTEPS 50 //the number of miliseconds to wait before executing the next Lulu simulation step
 
@@ -52,15 +52,16 @@ typedef enum {
 uint8_t colorValues[] = {RGB(0, 0, 0), RGB(3, 0, 0), RGB(0, 3, 0), RGB(0, 0, 3), RGB(3, 3, 3)};
 
 enum {
-    INDEX_MSG_OWNER_UID,
+    INDEX_MSG_OWNER_UID_LOW,
+    INDEX_MSG_OWNER_UID_HIGH,
 };
 
 /**
  * @brief Structure that holds information about a recent neighbor robot
  */
 typedef struct _Neighbor {
-    uint8_t uid; //we use uint8_t for uid because all of our robots have kilo_uid well below UINT8_MAX (255)
-    uint8_t symbolic_id;
+    uint16_t uid;
+    uint16_t symbolic_id;
     uint8_t distance, distance_prev;
     uint32_t timexp_forget;
 } Neighbor_t;
@@ -204,6 +205,11 @@ message_t* message_tx();
  * @brief Function called after the message has been succesfully sent
  */
 void message_tx_success();
+
+/**
+ * @brief Prepares a new message for sending (with CRC)
+ */
+void setup_message();
 
 /**
  * @brief Function called in a continuos loop during the runtine of the program

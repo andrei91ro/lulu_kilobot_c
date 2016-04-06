@@ -70,7 +70,7 @@ void process_message() {
 
     uint8_t distance = estimate_distance(&RB_front().dist);
     uint8_t *data = RB_front().msg.data;
-    uint8_t id = data[INDEX_MSG_OWNER_UID];
+    uint16_t id = data[INDEX_MSG_OWNER_UID_LOW] | data[INDEX_MSG_OWNER_UID_HIGH] << 8;
 
     //search for the robot uid in the current neighbor list
     for (i = 0; i < MAX_NEIGHBORS; i++)
@@ -173,6 +173,13 @@ void message_rx(message_t* msg, distance_measurement_t* dist) {
     RB_pushback();
 }
 
+void setup_message() {
+    mydata->msg_tx.type = NORMAL;
+    mydata->msg_tx.data[INDEX_MSG_OWNER_UID_LOW] = kilo_uid & 0xFF; //low byte
+    mydata->msg_tx.data[INDEX_MSG_OWNER_UID_HIGH] = kilo_uid >> 8; //high byte
+    mydata->msg_tx.crc = message_crc(&mydata->msg_tx);
+}
+
 void loop() {
     //if the previous step was the last one
     if (mydata->sim_result == SIM_STEP_RESULT_NO_MORE_EXECUTABLES) {
@@ -219,9 +226,7 @@ void setup() {
     mydata->nr_neighbors = 0;
 
     //initialize message for transmission
-    mydata->msg_tx.type = NORMAL;
-    mydata->msg_tx.data[INDEX_MSG_OWNER_UID] = kilo_uid; //kilo_uid < 255 so the conversion from 16 to 8 bits should go smoothly
-    mydata->msg_tx.crc = message_crc(&mydata->msg_tx);
+    setup_message();
 
     //initialize Pcolony
     lulu_init(&mydata->pcol);
