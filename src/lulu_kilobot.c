@@ -114,12 +114,12 @@ void process_message() {
 
 void procInputModule() {
     uint8_t i; //used for iterating through the neighbor list
+    bool dist_big = TRUE;
 
     #ifdef USING_AGENT_MSG_DISTANCE
         for (uint8_t obj_id = 0; obj_id < mydata->pcol.n; obj_id++) {
             #ifdef USING_OBJECT_D_ALL
                 if (mydata->pcol.agents[AGENT_MSG_DISTANCE].obj.items[obj_id] == OBJECT_ID_D_ALL) {
-                    bool dist_big = TRUE;
                     for (i = 0; i < MAX_NEIGHBORS; i++)
                         if (mydata->neighbors[i].distance < PARAM_DISTANCE_THRESHOLD && mydata->neighbors[i].uid != NO_ID) {
                             dist_big = FALSE;
@@ -130,6 +130,42 @@ void procInputModule() {
                         replaceObjInMultisetObj(&mydata->pcol.agents[AGENT_MSG_DISTANCE].obj, OBJECT_ID_D_ALL, OBJECT_ID_B_ALL);
                     else
                         replaceObjInMultisetObj(&mydata->pcol.agents[AGENT_MSG_DISTANCE].obj, OBJECT_ID_D_ALL, OBJECT_ID_S_ALL);
+                }
+            #endif
+            #ifdef USING_OBJECT_D_NEXT
+                if (mydata->pcol.agents[AGENT_MSG_DISTANCE].obj.items[obj_id] == OBJECT_ID_D_NEXT) {
+                    bool isAtLeastOneRobotClose = FALSE;
+
+                    for (i = 0; i < MAX_NEIGHBORS; i++)
+                        //consider this robot close if it is below the threshold, it has a valid UID and an UID smaller than the total swarm number of robots
+                        if (mydata->neighbors[i].distance < PARAM_DISTANCE_THRESHOLD && mydata->neighbors[i].uid != NO_ID
+                                && mydata->neighbors[i].uid < nr_swarm_robots) {
+                            isAtLeastOneRobotClose = TRUE;
+                            break;
+                        }
+
+                    if (isAtLeastOneRobotClose) {
+                            //search for the next non-empty neighbor slot, starting from mydata->neighbor_index
+                            i = mydata->neighbor_index;
+                            while( i < MAX_NEIGHBORS && (mydata->neighbors[i].uid == NO_ID || mydata->neighbors[i].uid >= nr_swarm_robots))
+                                if (i == MAX_NEIGHBORS - 1) {
+                                    //reset the search to the first neighbor slot
+                                    i = 0;
+                                } else
+                                    i++;
+
+                            //store the current neighbor index
+                            mydata->neighbor_index = i;
+
+                            //if (dist_big || mydata->nr_neighbors == 0)
+                            if (mydata->neighbors[i].distance < PARAM_DISTANCE_THRESHOLD)
+                                replaceObjInMultisetObj(&mydata->pcol.agents[AGENT_MSG_DISTANCE].obj, OBJECT_ID_D_NEXT, OBJECT_ID_S_0 + mydata->neighbors[i].symbolic_id);
+                            else
+                                replaceObjInMultisetObj(&mydata->pcol.agents[AGENT_MSG_DISTANCE].obj, OBJECT_ID_D_NEXT, OBJECT_ID_B_0 + mydata->neighbors[i].symbolic_id);
+
+                            mydata->neighbor_index++;
+                    } else
+                        replaceObjInMultisetObj(&mydata->pcol.agents[AGENT_MSG_DISTANCE].obj, OBJECT_ID_D_NEXT, OBJECT_ID_B_ALL);
                 }
             #endif
         }
@@ -206,6 +242,12 @@ void loop() {
         RB_popfront();
     }
 
+#ifdef USING_ID_SECURITY
+    if (kilo_uid == STRANGER_UID) {
+        set_color(RGB(3, 0, 3)); //magenta
+        return;
+    }
+#endif
     //transform sensor input into symbolic objects
     procInputModule();
     mydata->sim_result = pcolony_runSimulationStep(&mydata->pcol);
@@ -224,6 +266,7 @@ void setup() {
     mydata->sim_result = SIM_STEP_RESULT_FINISHED;
     mydata->light = mydata->light_prev = 0;
     mydata->nr_neighbors = 0;
+    mydata->neighbor_index = 0;
 
     //initialize message for transmission
     setup_message();

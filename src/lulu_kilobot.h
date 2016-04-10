@@ -27,6 +27,13 @@
 
 //we define a NO_ID value for Neighbor_t.uid, because 0 can be used as a regular uid
 #define NO_ID UINT16_MAX
+
+#ifdef USING_ID_SECURITY
+    //the stranger robot doesn't move (is moved by the user), emits messages as normal robots and is magenta coloured
+    //this robot is used in ID based security demos
+    #define STRANGER_UID 2
+#endif
+
 #define FORGET_NEIGHBOR_INTERVAL 32 * 2 //forget neighbors if the last msg received was 32 * X seconds ago (1 second = 32 kiloticks)
 #define SLEEP_MS_BETWEEN_SIMSTEPS 50 //the number of miliseconds to wait before executing the next Lulu simulation step
 
@@ -95,11 +102,6 @@ typedef struct {
     uint8_t RXHead, RXTail;
     Received_message_t RXBuffer[RB_SIZE];
 
-#ifdef KILOBOT
-    //the real kilobot executes Lulu simulation steps very fast so most of the time the engines stay at spinup rpm
-    //and this results in chaotic movement of the robots
-    uint32_t tickxp_wait_lulu_simstep;
-#endif
 } USERDATA;
 
 /*-------------------- RING BUFFER DEFINITION ---------------------------*/

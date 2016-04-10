@@ -18,7 +18,7 @@ LULU_PCOL_SIM = $(LULU_PCOL_SIM_PATH)/sim.py
 # path to the lulu to C converter script
 LULU_C = /home/andrei/script_Python/lulu_c/lulu_c.py
 # path to one example instance file (can be set as an Environment variable to any Lulu formatted input file)
-LULU_INSTANCE_FILE = test_disperse.lulu pi_disperse 70 2
+LULU_INSTANCE_FILE = test_secure_disperse.lulu pi_disperse 10 0
 # path to the LULU headers
 LULU_HEADERS = ../lulu/src
 # path to the LULU C library
@@ -70,6 +70,10 @@ else
   LULU_LIB_AVR = ../lulu/build_hex/lulu.a
 endif
 
+ifeq ($(ID_SECURITY),1)
+  USING_ID_SECURITY=-DUSING_ID_SECURITY
+endif
+
 FLASH = -R .eeprom -R .fuse -R .lock -R .signature
 EEPROM = -j .eeprom --set-section-flags=.eeprom="alloc,load" --change-section-lma .eeprom=0
 
@@ -91,7 +95,7 @@ build/lulu_kilobot: build/lulu_kilobot.o build/instance.o
 	$(CC) $(SIM_LFLAGS) $^ $(LULU_LIB) -o $@
 
 build/lulu_kilobot.o: src/lulu_kilobot.c src/instance.h $(LULU_HEADERS)/rules.h
-	$(CC) $(SIM_CFLAGS) -I$(LULU_HEADERS)/ src/lulu_kilobot.c -o $@
+	$(CC) $(SIM_CFLAGS) $(USING_ID_SECURITY) -I$(LULU_HEADERS)/ src/lulu_kilobot.c -o $@
 
 build/instance.o: src/instance.h src/instance.c $(LULU_HEADERS)/rules.h
 	$(CC) $(CFLAGS) src/instance.c -I$(LULU_HEADERS)/ -o $@
