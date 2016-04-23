@@ -32,6 +32,7 @@
     //the stranger robot doesn't move (is moved by the user), emits messages as normal robots and is magenta coloured
     //this robot is used in ID based security demos
     #define STRANGER_UID 2
+    //#define STRANGER_UID 62
 #endif
 
 #define FORGET_NEIGHBOR_INTERVAL 32 * 2 //forget neighbors if the last msg received was 32 * X seconds ago (1 second = 32 kiloticks)

@@ -139,7 +139,7 @@ void procInputModule() {
                     for (i = 0; i < MAX_NEIGHBORS; i++)
                         //consider this robot close if it is below the threshold, it has a valid UID and an UID smaller than the total swarm number of robots
                         if (mydata->neighbors[i].distance < PARAM_DISTANCE_THRESHOLD && mydata->neighbors[i].uid != NO_ID
-                                && mydata->neighbors[i].uid < nr_swarm_robots) {
+                                && mydata->neighbors[i].symbolic_id < nr_swarm_robots) {
                             isAtLeastOneRobotClose = TRUE;
                             break;
                         }
@@ -147,7 +147,7 @@ void procInputModule() {
                     if (isAtLeastOneRobotClose) {
                             //search for the next non-empty neighbor slot, starting from mydata->neighbor_index
                             i = mydata->neighbor_index;
-                            while( i < MAX_NEIGHBORS && (mydata->neighbors[i].uid == NO_ID || mydata->neighbors[i].uid >= nr_swarm_robots))
+                            while( i < MAX_NEIGHBORS && (mydata->neighbors[i].uid == NO_ID || mydata->neighbors[i].symbolic_id >= nr_swarm_robots))
                                 if (i == MAX_NEIGHBORS - 1) {
                                     //reset the search to the first neighbor slot
                                     i = 0;
