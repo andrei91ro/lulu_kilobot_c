@@ -65,9 +65,7 @@ void forget_neighbors() {
 }
 
 void process_message() {
-    uint8_t i;
-
-
+    uint8_t i, received_obj;
     uint8_t distance = estimate_distance(&RB_front().dist);
     uint8_t *data = RB_front().msg.data;
     uint16_t id = data[INDEX_MSG_OWNER_UID_LOW] | data[INDEX_MSG_OWNER_UID_HIGH] << 8;
@@ -108,8 +106,46 @@ void process_message() {
         mydata->neighbors[i].distance = distance;
     }
 
+    //add objects received from this neighbor to the robot's in_global_env
+
+    //check all content bytes
+    for (i = INDEX_MSG_FIRST_CONTENT_BYTE; i <= INDEX_MSG_LAST_CONTENT_BYTE; i++) {
+        //check each bit from this byte
+        for (uint8_t j = 0; j <= 7; j++)
+            //if this bit is set
+            if (data[i] & (1<<j)) {
+                received_obj = (i - INDEX_MSG_FIRST_CONTENT_BYTE) * 8 + j;
+                //set the corresponding bit in the in_global_env
+                setObjectCountFromMultisetEnv(&mydata->pcol.pswarm.in_global_env,
+                        received_obj, // object_id = byte_nr * 8 + bit_nr
+                        COUNT_INCREMENT);
+            #ifdef PCOL_SIM
+                printw(("kilo_uid=%d received object %s from robot %d", kilo_uid, objectNames[received_obj], id));
+            #endif
+            }
+        //clear this message byte
+        data[i] = 0;
+    }
+
     //set the moment in the future when the robot will forget about this neighbor
     mydata->neighbors[i].timexp_forget = kilo_ticks + FORGET_NEIGHBOR_INTERVAL;
+}
+
+bool setObjectBitmaskInMsgData(uint8_t obj_id) {
+    uint8_t byte = obj_id / 8; // obj_id div 8
+    uint8_t mask = 1 << (obj_id % 8);
+
+    if (byte > INDEX_MSG_LAST_CONTENT_BYTE - INDEX_MSG_FIRST_CONTENT_BYTE + 1) {
+        //no more room available to mask this object, because it would end up past the last byte reserved for msg content
+        printe(("too many objects for available bitmask space"));
+        return FALSE;
+    }
+    mydata->msg_tx.data[INDEX_MSG_FIRST_CONTENT_BYTE + byte] |= mask;
+#ifdef PCOL_SIM
+    printw(("kilo_uid=%d sent object %s", kilo_uid, objectNames[obj_id]));
+#endif
+
+    return TRUE;
 }
 
 void procInputModule() {
@@ -170,6 +206,25 @@ void procInputModule() {
             #endif
         }
     #endif
+
+    //if USING_IN_OUT_EXTEROCEPTIVE RULES && global_env
+    if (areObjectsInMultisetEnv(&mydata->pcol.pswarm.out_global_env, OBJECT_ID_END, NO_OBJECT)) {
+        //reset message contents to 0
+        for (i = INDEX_MSG_FIRST_CONTENT_BYTE; i <= INDEX_MSG_LAST_CONTENT_BYTE; i++)
+            mydata->msg_tx.data[i] = 0;
+
+        //compose message WITH Bitmasks
+        for (i = 0; i < mydata->pcol.nr_A; i++)
+            if (mydata->pcol.pswarm.out_global_env.items[i].id != OBJECT_ID_END &&
+                    mydata->pcol.pswarm.out_global_env.items[i].id != OBJECT_ID_E &&
+                    mydata->pcol.pswarm.out_global_env.items[i].id != NO_OBJECT &&
+                    mydata->pcol.pswarm.out_global_env.items[i].nr > 0)
+                setObjectBitmaskInMsgData(mydata->pcol.pswarm.out_global_env.items[i].id);
+
+        //the rest of the message content was setup previously by setObjectBitmaskInMsgData()
+        //we now calculate the CRC and reset message type to NORMAL
+        setup_message();
+    }
 }
 
 void procOutputModule() {
@@ -269,6 +324,9 @@ void setup() {
     mydata->neighbor_index = 0;
 
     //initialize message for transmission
+    //reset message contents to 0
+    for (uint8_t i = INDEX_MSG_FIRST_CONTENT_BYTE; i <= INDEX_MSG_LAST_CONTENT_BYTE; i++)
+        mydata->msg_tx.data[i] = 0;
     setup_message();
 
     //initialize Pcolony

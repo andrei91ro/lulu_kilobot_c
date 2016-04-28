@@ -62,6 +62,8 @@ uint8_t colorValues[] = {RGB(0, 0, 0), RGB(3, 0, 0), RGB(0, 3, 0), RGB(0, 0, 3),
 enum {
     INDEX_MSG_OWNER_UID_LOW,
     INDEX_MSG_OWNER_UID_HIGH,
+    INDEX_MSG_FIRST_CONTENT_BYTE,
+    INDEX_MSG_LAST_CONTENT_BYTE = 8
 };
 
 /**
@@ -170,6 +172,15 @@ void forget_neighbors();
 void process_message();
 
 /**
+ * @brief Set the bitmask corresponding to the passed object id in the infrared message data (sent to neighbors)
+ * This functions sets one of the bits from INDEX_MSG_FIRST_CONTENT_BYTE upto INDEX_MSG_LAST_CONTENT_BYTE and will be included in the new messsage, by calling setup_message() afterwards
+ *
+ * @param obj_id The id of the object that has to be set as present in the message contents
+ * @return TRUE / FALSE depending on the availability of bits for the given obj_id (the maximum available bit number is INDEX_MSG_LAST_CONTENT_BYTE - INDEX_MSG_FIRST_CONTENT_BYTE)
+ */
+bool setObjectBitmaskInMsgData(uint8_t obj_id);
+
+/**
  * @brief Process raw_state info received from sensors and populate the input module agents with significant objects
  *
  */
@@ -223,8 +234,6 @@ void loop();
  * @brief Function called only once at startup, before entering the continuos loop
  */
 void setup();
-
-void process_message();
 
 #ifdef SIMULATOR
 /**
