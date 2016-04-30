@@ -61,6 +61,7 @@ void forget_neighbors() {
             mydata->neighbors[i].distance = 0;
             mydata->neighbors[i].distance_prev = 0;
             mydata->neighbors[i].timexp_forget = 0;
+            //mydata->neighbors[i].prev_crc = 0;
         }
 }
 
@@ -69,6 +70,7 @@ void process_message() {
     uint8_t distance = estimate_distance(&RB_front().dist);
     uint8_t *data = RB_front().msg.data;
     uint16_t id = data[INDEX_MSG_OWNER_UID_LOW] | data[INDEX_MSG_OWNER_UID_HIGH] << 8;
+    uint16_t crc = RB_front().msg.crc;
 
     //search for the robot uid in the current neighbor list
     for (i = 0; i < MAX_NEIGHBORS; i++)
@@ -108,25 +110,29 @@ void process_message() {
 
     //add objects received from this neighbor to the robot's in_global_env
 
-    //check all content bytes
-    for (i = INDEX_MSG_FIRST_CONTENT_BYTE; i <= INDEX_MSG_LAST_CONTENT_BYTE; i++) {
-        //check each bit from this byte
-        for (uint8_t j = 0; j <= 7; j++)
-            //if this bit is set
-            if (data[i] & (1<<j)) {
-                received_obj = (i - INDEX_MSG_FIRST_CONTENT_BYTE) * 8 + j;
-                //set the corresponding bit in the in_global_env
-                setObjectCountFromMultisetEnv(&mydata->pcol.pswarm.in_global_env,
-                        received_obj, // object_id = byte_nr * 8 + bit_nr
-                        COUNT_INCREMENT);
-            #ifdef PCOL_SIM
-                printw(("kilo_uid=%d received object %s from robot %d", kilo_uid, objectNames[received_obj], id));
-            #endif
-            }
-        //clear this message byte
-        data[i] = 0;
-    }
+    //if the crc has changed then the contents of the message have also changed and need processing
+    if (crc != mydata->neighbors[i].prev_crc)
+        //check all content bytes
+        for (i = INDEX_MSG_FIRST_CONTENT_BYTE; i <= INDEX_MSG_LAST_CONTENT_BYTE; i++) {
+            //check each bit from this byte
+            for (uint8_t j = 0; j <= 7; j++)
+                //if this bit is set
+                if (data[i] & (1<<j)) {
+                    received_obj = (i - INDEX_MSG_FIRST_CONTENT_BYTE) * 8 + j;
+                    //set the corresponding bit in the in_global_env
+                    setObjectCountFromMultisetEnv(&mydata->pcol.pswarm.in_global_env,
+                            received_obj, // object_id = byte_nr * 8 + bit_nr
+                            COUNT_INCREMENT);
+                #ifdef PCOL_SIM
+                    printw(("kilo_uid=%d received object %s from robot %d; CRC (%d) / PREV_CRC (%d) TIMEXP_FORGET = %d", kilo_uid, objectNames[received_obj], id, crc, mydata->neighbors[i].prev_crc, mydata->neighbors[i].timexp_forget));
+                #endif
+                }
+            //clear this message byte
+            data[i] = 0;
+        }
 
+    //store the current crc value of this message
+    mydata->neighbors[i].prev_crc = crc;
     //set the moment in the future when the robot will forget about this neighbor
     mydata->neighbors[i].timexp_forget = kilo_ticks + FORGET_NEIGHBOR_INTERVAL;
 }
@@ -272,6 +278,9 @@ void setup_message() {
 }
 
 void loop() {
+#ifdef PCOL_SIM
+    printi(("\nLOOP for robot %d\n-------------------------\n", kilo_uid));
+#endif
     //if the previous step was the last one
     if (mydata->sim_result == SIM_STEP_RESULT_NO_MORE_EXECUTABLES) {
         //mark the end of the simulation and exit
