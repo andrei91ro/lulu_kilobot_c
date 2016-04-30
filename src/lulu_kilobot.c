@@ -217,6 +217,9 @@ void setup_message() {
 }
 
 void loop() {
+#ifdef PCOL_SIM
+    printi(("\nLOOP for robot %d\n-------------------------\n", kilo_uid));
+#endif
     //if the previous step was the last one
     if (mydata->sim_result == SIM_STEP_RESULT_NO_MORE_EXECUTABLES) {
         //mark the end of the simulation and exit
