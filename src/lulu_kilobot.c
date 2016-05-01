@@ -113,22 +113,22 @@ void process_message() {
     //if the crc has changed then the contents of the message have also changed and need processing
     if (crc != mydata->neighbors[i].prev_crc)
         //check all content bytes
-        for (i = INDEX_MSG_FIRST_CONTENT_BYTE; i <= INDEX_MSG_LAST_CONTENT_BYTE; i++) {
+        for (uint8_t byte_nr = INDEX_MSG_FIRST_CONTENT_BYTE; byte_nr <= INDEX_MSG_LAST_CONTENT_BYTE; byte_nr++) {
             //check each bit from this byte
             for (uint8_t j = 0; j <= 7; j++)
                 //if this bit is set
-                if (data[i] & (1<<j)) {
-                    received_obj = (i - INDEX_MSG_FIRST_CONTENT_BYTE) * 8 + j;
+                if (data[byte_nr] & (1<<j)) {
+                    received_obj = (byte_nr - INDEX_MSG_FIRST_CONTENT_BYTE) * 8 + j;
                     //set the corresponding bit in the in_global_env
                     setObjectCountFromMultisetEnv(&mydata->pcol.pswarm.in_global_env,
                             received_obj, // object_id = byte_nr * 8 + bit_nr
                             COUNT_INCREMENT);
                 #ifdef PCOL_SIM
-                    printw(("kilo_uid=%d received object %s from robot %d; CRC (%d) / PREV_CRC (%d) TIMEXP_FORGET = %d", kilo_uid, objectNames[received_obj], id, crc, mydata->neighbors[i].prev_crc, mydata->neighbors[i].timexp_forget));
+                    printw(("kilo_uid=%d received object %s from robot %d", kilo_uid, objectNames[received_obj], id));
                 #endif
                 }
             //clear this message byte
-            data[i] = 0;
+            data[byte_nr] = 0;
         }
 
     //store the current crc value of this message
