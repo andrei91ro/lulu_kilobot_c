@@ -109,12 +109,12 @@ void process_message() {
     //add objects received from this neighbor to the robot's in_global_env
 
     //check all content bytes
-    for (i = INDEX_MSG_FIRST_CONTENT_BYTE; i <= INDEX_MSG_LAST_CONTENT_BYTE; i++) {
+    for (uint8_t byte_nr = INDEX_MSG_FIRST_CONTENT_BYTE; byte_nr <= INDEX_MSG_LAST_CONTENT_BYTE; byte_nr++) {
         //check each bit from this byte
         for (uint8_t j = 0; j <= 7; j++)
             //if this bit is set
-            if (data[i] & (1<<j)) {
-                received_obj = (i - INDEX_MSG_FIRST_CONTENT_BYTE) * 8 + j;
+            if (data[byte_nr] & (1<<j)) {
+                received_obj = (byte_nr - INDEX_MSG_FIRST_CONTENT_BYTE) * 8 + j;
                 //set the corresponding bit in the in_global_env
                 setObjectCountFromMultisetEnv(&mydata->pcol.pswarm.in_global_env,
                         received_obj, // object_id = byte_nr * 8 + bit_nr
@@ -124,7 +124,7 @@ void process_message() {
             #endif
             }
         //clear this message byte
-        data[i] = 0;
+        data[byte_nr] = 0;
     }
 
     //set the moment in the future when the robot will forget about this neighbor
