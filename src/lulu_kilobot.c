@@ -108,6 +108,7 @@ void process_message() {
         mydata->neighbors[i].distance = distance;
     }
 
+#ifdef USING_IN_OUT_EXTEROCEPTIVE_RULES
     //add objects received from this neighbor to the robot's in_global_env
 
     //if the crc has changed then the contents of the message have also changed and need processing
@@ -133,26 +134,30 @@ void process_message() {
 
     //store the current crc value of this message
     mydata->neighbors[i].prev_crc = crc;
+#endif
     //set the moment in the future when the robot will forget about this neighbor
     mydata->neighbors[i].timexp_forget = kilo_ticks + FORGET_NEIGHBOR_INTERVAL;
 }
 
-bool setObjectBitmaskInMsgData(uint8_t obj_id) {
-    uint8_t byte = obj_id / 8; // obj_id div 8
-    uint8_t mask = 1 << (obj_id % 8);
 
-    if (byte > INDEX_MSG_LAST_CONTENT_BYTE - INDEX_MSG_FIRST_CONTENT_BYTE + 1) {
-        //no more room available to mask this object, because it would end up past the last byte reserved for msg content
-        printe(("too many objects for available bitmask space"));
-        return FALSE;
+#ifdef USING_IN_OUT_EXTEROCEPTIVE_RULES
+    bool setObjectBitmaskInMsgData(uint8_t obj_id) {
+        uint8_t byte = obj_id / 8; // obj_id div 8
+        uint8_t mask = 1 << (obj_id % 8);
+
+        if (byte > INDEX_MSG_LAST_CONTENT_BYTE - INDEX_MSG_FIRST_CONTENT_BYTE + 1) {
+            //no more room available to mask this object, because it would end up past the last byte reserved for msg content
+            printe(("too many objects for available bitmask space"));
+            return FALSE;
+        }
+        mydata->msg_tx.data[INDEX_MSG_FIRST_CONTENT_BYTE + byte] |= mask;
+    #ifdef PCOL_SIM
+        printw(("kilo_uid=%d sent object %s", kilo_uid, objectNames[obj_id]));
+    #endif
+
+        return TRUE;
     }
-    mydata->msg_tx.data[INDEX_MSG_FIRST_CONTENT_BYTE + byte] |= mask;
-#ifdef PCOL_SIM
-    printw(("kilo_uid=%d sent object %s", kilo_uid, objectNames[obj_id]));
 #endif
-
-    return TRUE;
-}
 
 void procInputModule() {
     uint8_t i; //used for iterating through the neighbor list
@@ -213,24 +218,25 @@ void procInputModule() {
         }
     #endif
 
-    //if USING_IN_OUT_EXTEROCEPTIVE RULES && global_env
-    if (areObjectsInMultisetEnv(&mydata->pcol.pswarm.out_global_env, OBJECT_ID_END, NO_OBJECT)) {
-        //reset message contents to 0
-        for (i = INDEX_MSG_FIRST_CONTENT_BYTE; i <= INDEX_MSG_LAST_CONTENT_BYTE; i++)
-            mydata->msg_tx.data[i] = 0;
+    #ifdef USING_IN_OUT_EXTEROCEPTIVE_RULES
+        if (areObjectsInMultisetEnv(&mydata->pcol.pswarm.out_global_env, OBJECT_ID_END, NO_OBJECT)) {
+            //reset message contents to 0
+            for (i = INDEX_MSG_FIRST_CONTENT_BYTE; i <= INDEX_MSG_LAST_CONTENT_BYTE; i++)
+                mydata->msg_tx.data[i] = 0;
 
-        //compose message WITH Bitmasks
-        for (i = 0; i < mydata->pcol.nr_A; i++)
-            if (mydata->pcol.pswarm.out_global_env.items[i].id != OBJECT_ID_END &&
-                    mydata->pcol.pswarm.out_global_env.items[i].id != OBJECT_ID_E &&
-                    mydata->pcol.pswarm.out_global_env.items[i].id != NO_OBJECT &&
-                    mydata->pcol.pswarm.out_global_env.items[i].nr > 0)
-                setObjectBitmaskInMsgData(mydata->pcol.pswarm.out_global_env.items[i].id);
+            //compose message WITH Bitmasks
+            for (i = 0; i < mydata->pcol.nr_A; i++)
+                if (mydata->pcol.pswarm.out_global_env.items[i].id != OBJECT_ID_END &&
+                        mydata->pcol.pswarm.out_global_env.items[i].id != OBJECT_ID_E &&
+                        mydata->pcol.pswarm.out_global_env.items[i].id != NO_OBJECT &&
+                        mydata->pcol.pswarm.out_global_env.items[i].nr > 0)
+                    setObjectBitmaskInMsgData(mydata->pcol.pswarm.out_global_env.items[i].id);
 
-        //the rest of the message content was setup previously by setObjectBitmaskInMsgData()
-        //we now calculate the CRC and reset message type to NORMAL
-        setup_message();
-    }
+            //the rest of the message content was setup previously by setObjectBitmaskInMsgData()
+            //we now calculate the CRC and reset message type to NORMAL
+            setup_message();
+        }
+    #endif
 }
 
 void procOutputModule() {
@@ -332,11 +338,13 @@ void setup() {
     mydata->nr_neighbors = 0;
     mydata->neighbor_index = 0;
 
-    //initialize message for transmission
-    //reset message contents to 0
-    for (uint8_t i = INDEX_MSG_FIRST_CONTENT_BYTE; i <= INDEX_MSG_LAST_CONTENT_BYTE; i++)
-        mydata->msg_tx.data[i] = 0;
-    setup_message();
+    #ifdef USING_IN_OUT_EXTEROCEPTIVE_RULES
+        //initialize message for transmission
+        //reset message contents to 0
+        for (uint8_t i = INDEX_MSG_FIRST_CONTENT_BYTE; i <= INDEX_MSG_LAST_CONTENT_BYTE; i++)
+            mydata->msg_tx.data[i] = 0;
+        setup_message();
+    #endif
 
     //initialize Pcolony
     lulu_init(&mydata->pcol);
