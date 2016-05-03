@@ -61,7 +61,7 @@ void forget_neighbors() {
             mydata->neighbors[i].distance = 0;
             mydata->neighbors[i].distance_prev = 0;
             mydata->neighbors[i].timexp_forget = 0;
-            //mydata->neighbors[i].prev_crc = 0;
+            mydata->neighbors[i].prev_crc = 0;
         }
 }
 

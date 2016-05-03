@@ -35,7 +35,7 @@
     //#define STRANGER_UID 62
 #endif
 
-#define FORGET_NEIGHBOR_INTERVAL 32 * 6 //forget neighbors if the last msg received was 32 * X seconds ago (1 second = 32 kiloticks)
+#define FORGET_NEIGHBOR_INTERVAL 32 * 2 //forget neighbors if the last msg received was 32 * X seconds ago (1 second = 32 kiloticks)
 #define SLEEP_MS_BETWEEN_SIMSTEPS 50 //the number of miliseconds to wait before executing the next Lulu simulation step
 
 /**
