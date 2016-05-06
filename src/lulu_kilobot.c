@@ -89,7 +89,7 @@ void process_message() {
 
     //if there was no empty slot
     if (i == MAX_NEIGHBORS) {
-        printw(("kilo_uid: %d - no slot for KB%d", kilo_uid, id));
+        printw("kilo_uid: %d - no slot for KB%d", kilo_uid, id);
         return;
     }
 
@@ -218,14 +218,14 @@ void setup_message() {
 
 void loop() {
 #ifdef PCOL_SIM
-    printi(("\nLOOP for robot %d\n-------------------------\n", kilo_uid));
+    printi("\nLOOP for robot %d\n-------------------------\n", kilo_uid);
 #endif
     //if the previous step was the last one
     if (mydata->sim_result == SIM_STEP_RESULT_NO_MORE_EXECUTABLES) {
         //mark the end of the simulation and exit
         set_color(RGB(0, 2, 0));
         set_motion(MOTION_STOP);
-        printi(("kilo_uid %d: NO_MORE_EXEC", kilo_uid));
+        printi("kilo_uid %d: NO_MORE_EXEC", kilo_uid);
         return;
     } else
     // if the previous step resulted in an error
