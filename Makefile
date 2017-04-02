@@ -22,7 +22,7 @@ LULU_C = /home/andrei/script_Python/lulu_c/lulu_c.py
 #LULU_INSTANCE_FILE = test_secure_disperse.lulu pi_disperse 3 60
 #LULU_INSTANCE_FILE = test_secure_disperse.lulu pi_disperse 10 0
 #LULU_INSTANCE_FILE = test_disperse.lulu pi_disperse 3 60
-LULU_INSTANCE_FILE = test_disperse.lulu pi_disperse 2 0
+LULU_INSTANCE_FILE = input_files/test_disperse.lulu pi_disperse 2 0
 # path to the LULU headers
 LULU_HEADERS = ../lulu/src
 # path to the LULU C library
