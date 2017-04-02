@@ -57,7 +57,7 @@ typedef enum {
     //TODO add all basic colors used in lulu_kilobot.py
 } led_color_t;
 
-uint8_t colorValues[] = {RGB(0, 0, 0), RGB(3, 0, 0), RGB(0, 3, 0), RGB(0, 0, 3), RGB(3, 3, 3)};
+extern uint8_t colorValues[];
 
 enum {
     INDEX_MSG_OWNER_UID_LOW,
@@ -102,6 +102,10 @@ typedef struct {
     //receive messages ring buffer (taken from kilombo/examples/gradient2)
     uint8_t RXHead, RXTail;
     Received_message_t RXBuffer[RB_SIZE];
+
+#ifdef REQUIRES_SPECIAL_BEHAVIOUR
+    uint8_t isRobotSpecial; //Determined at startup by checking against the special_kilo_uid[] array
+#endif
 
 } USERDATA;
 

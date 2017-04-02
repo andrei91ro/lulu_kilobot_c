@@ -1,6 +1,7 @@
 CC = gcc
 CC-AVR = avr-gcc
 DEBUG = 0
+SPECIAL = 0
 AVRAR = avr-ar
 AVROC = avr-objcopy
 AVROD = avr-objdump
@@ -21,7 +22,7 @@ LULU_C = /home/andrei/script_Python/lulu_c/lulu_c.py
 #LULU_INSTANCE_FILE = test_secure_disperse.lulu pi_disperse 3 60
 #LULU_INSTANCE_FILE = test_secure_disperse.lulu pi_disperse 10 0
 #LULU_INSTANCE_FILE = test_disperse.lulu pi_disperse 3 60
-LULU_INSTANCE_FILE = test_disperse.lulu pi_disperse 10 0
+LULU_INSTANCE_FILE = test_disperse.lulu pi_disperse 2 0
 # path to the LULU headers
 LULU_HEADERS = ../lulu/src
 # path to the LULU C library
@@ -77,6 +78,19 @@ ifeq ($(ID_SECURITY),1)
   USING_ID_SECURITY=-DUSING_ID_SECURITY
 endif
 
+ifeq ($(SPECIAL),1)
+  CFLAGS += -DREQUIRES_SPECIAL_BEHAVIOUR
+  BFLAGS += -DREQUIRES_SPECIAL_BEHAVIOUR
+
+  #compilation flags for simulated version
+  SIM_CFLAGS += -DREQUIRES_SPECIAL_BEHAVIOUR
+  #linking flags for simulated version
+  SIM_LFLAGS += -DREQUIRES_SPECIAL_BEHAVIOUR
+
+  CFLAGS_AVR += -DREQUIRES_SPECIAL_BEHAVIOUR
+  BFLAGS_AVR += -DREQUIRES_SPECIAL_BEHAVIOUR
+endif
+
 FLASH = -R .eeprom -R .fuse -R .lock -R .signature
 EEPROM = -j .eeprom --set-section-flags=.eeprom="alloc,load" --change-section-lma .eeprom=0
 
@@ -94,7 +108,7 @@ clean_hex:
 clean_sim:
 	rm -vf build/*
 
-build/lulu_kilobot: build/lulu_kilobot.o build/instance.o
+build/lulu_kilobot: build/lulu_kilobot.o build/instance.o build/special_behaviour.o
 	$(CC) $(SIM_LFLAGS) $^ $(LULU_LIB) -o $@
 
 build/lulu_kilobot.o: src/lulu_kilobot.c src/instance.h $(LULU_HEADERS)/rules.h
@@ -106,12 +120,14 @@ build/instance.o: src/instance.h src/instance.c $(LULU_HEADERS)/rules.h
 src/instance.h src/instance.c:
 	python $(LULU_C) $(LULU_INSTANCE_FILE) src/instance
 
+build/special_behaviour.o: src/special_behaviour.h src/special_behaviour.c src/lulu_kilobot.h
+	$(CC) $(CFLAGS) src/special_behaviour.c -I$(LULU_HEADERS)/ -o $@
 # --------------------------------------------------------------------------------------------------------------------
 # The following rules build for the kilobot
 
 hex: build_hex/lulu_kilobot.hex
 
-build_hex/lulu_kilobot.elf: build_hex/lulu_kilobot.o build_hex/instance.o
+build_hex/lulu_kilobot.elf: build_hex/lulu_kilobot.o build_hex/instance.o build_hex/special_behaviour.o
 	$(CC-AVR) $(BFLAGS_AVR) $^ $(LULU_LIB_AVR) $(KILOLIB_LIB) -o $@
 
 build_hex/lulu_kilobot.o: src/lulu_kilobot.c src/instance.h $(LULU_HEADERS)/rules.h
@@ -119,6 +135,9 @@ build_hex/lulu_kilobot.o: src/lulu_kilobot.c src/instance.h $(LULU_HEADERS)/rule
 
 build_hex/instance.o: src/instance.h src/instance.c $(LULU_HEADERS)/rules.h
 	$(CC-AVR) $(CFLAGS_AVR) src/instance.c -I$(LULU_HEADERS)/ -o $@
+
+build_hex/special_behaviour.o: src/special_behaviour.h src/special_behaviour.c src/lulu_kilobot.h
+	$(CC-AVR) $(CFLAGS_AVR) src/special_behaviour.c -I$(LULU_HEADERS)/ -I$(KILOMBO_HEADERS_AVR)/ -o $@
 
 %.lss: %.elf
 	$(AVROD) -d -S $< > $@

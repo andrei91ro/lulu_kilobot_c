@@ -11,10 +11,16 @@
 #include "instance.h"
 #include "debug_print.h"
 
+#ifdef REQUIRES_SPECIAL_BEHAVIOUR
+    #include "special_behaviour.h"
+#endif
+
 #ifdef SIMULATOR
     char* motionNames[] = {"stop", "straight", "left", "right"};
     char* colorNames[] = {"off", "red", "green", "blue", "white"};
 #endif
+
+uint8_t colorValues[] = {RGB(0, 0, 0), RGB(3, 0, 0), RGB(0, 3, 0), RGB(0, 0, 3), RGB(3, 3, 3)};
 
 //get *mydata to the coresponding USERDATA structure of the running robot
 REGISTER_USERDATA(USERDATA)
@@ -217,6 +223,18 @@ void setup_message() {
 }
 
 void loop() {
+
+#ifdef REQUIRES_SPECIAL_BEHAVIOUR
+    if (mydata->isRobotSpecial) {
+#ifdef PCOL_SIM
+        printi("\nLOOP for SPECIAL robot %d\n-------------------------\n", kilo_uid);
+#endif
+        loop_special(mydata);
+        //special robots do not use P colonies so we can safely exit
+        return;
+    }
+#endif
+
 #ifdef PCOL_SIM
     printi("\nLOOP for robot %d\n-------------------------\n", kilo_uid);
 #endif
@@ -270,16 +288,9 @@ void setup() {
     mydata->light = mydata->light_prev = 0;
     mydata->nr_neighbors = 0;
     mydata->neighbor_index = 0;
-
-    //initialize message for transmission
-    setup_message();
-
-    //initialize Pcolony
-    lulu_init(&mydata->pcol);
-
-    #ifdef NEEDING_WILDCARD_EXPANSION
-        expand_pcolony(&mydata->pcol, kilo_uid);
-    #endif
+#ifdef REQUIRES_SPECIAL_BEHAVIOUR
+    mydata->isRobotSpecial = 0;
+#endif
 
     //init neighbors
     for (uint8_t i = 0; i < MAX_NEIGHBORS; i++)
@@ -292,6 +303,32 @@ void setup() {
 
     //initialize message receive buffer
     RB_init();
+
+//allow certain robots (specified in the special_kilo_uid[] array to have a special setup() and loop()
+#ifdef REQUIRES_SPECIAL_BEHAVIOUR
+    for (int i = 0; i < size_special_kilo_uid; i++)
+    #ifdef SIMULATOR
+        if (kilo_uid == special_kilo_uid[i]) {
+            mydata->isRobotSpecial = 1;
+            printi("kilobot[%d] will use special setup(), loop()", kilo_uid);
+    #else
+        if (kilo_uid == special_kilo_uid_physical[i]) {
+            mydata->isRobotSpecial = 1;
+    #endif
+            setup_special(mydata);
+            //special robots do not use P colonies so we can safely exit
+            return;
+        }
+#endif
+    //initialize message for transmission
+    setup_message();
+
+    //initialize Pcolony
+    lulu_init(&mydata->pcol);
+
+    #ifdef NEEDING_WILDCARD_EXPANSION
+        expand_pcolony(&mydata->pcol, kilo_uid);
+    #endif
 }
 
 #ifdef SIMULATOR
@@ -321,6 +358,7 @@ int main() {
     //register kilobot callbacks
     kilo_message_rx = message_rx;
     kilo_message_tx = message_tx;
+
 
     kilo_start(setup, loop);
 
