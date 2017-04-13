@@ -251,4 +251,47 @@ void setup();
 char *cb_botinfo(void);
 #endif
 
+//P colony debug functions (taken from simulator.c)
+#if (defined SIMULATOR) && (DEBUG_PRINT == 0)
+#include <stdio.h> //for strcpy, memset, ...
+#include <string.h> //for strcpy, memset, ...
+
+extern char outputBuffer[255];
+
+/**
+ * @brief Print the contents of the specified environment multiset
+ *
+ * @param multiset The multiset that will be printed
+ *
+ * @return A string containing the multiset contents
+ */
+char* printMultisetEnv(multiset_env_t *multiset);
+
+/**
+ * @brief Print the contents of the specified agent multiset
+ *
+ * @param multiset The multiset that will be printed
+ *
+ * @return A string containing the multiset contents
+ */
+char* printMultisetObj(multiset_obj_t *multiset);
+
+/**
+ * @brief Print all of the rules of the specified program
+ *
+ * @param program The program that will be printed
+ *
+ * @return A string containing the program contents
+ */
+char* printProgram(Program_t *program);
+
+/**
+ * @brief Print all of the components of the specified P colony
+ *
+ * @param pcol The P colony that will be printed
+ * @param with_programs Boolean parameter specifying whether programs will be printed
+ */
+void printColonyState(Pcolony_t *pcol, bool with_programs);
+
+#endif
 #endif

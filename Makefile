@@ -1,12 +1,16 @@
 CC = gcc
 CC-AVR = avr-gcc
-DEBUG = 0
-SPECIAL = 0
 AVRAR = avr-ar
 AVROC = avr-objcopy
 AVROD = avr-objdump
 AVRUP = avrdude
 AVRSIZE = avr-size
+
+DEBUG = 0
+SPECIAL = 0
+#IN_EXTEROCEPTIVE_CHECK_CRC = 1
+IN_EXTEROCEPTIVE_CHECK_CRC = 0
+OUT_EXTEROCEPTIVE_AUTO_RESET_OUTPUT = 1
 
 # optimization flags for AVR
 #AVR_OPTIM = -O3
@@ -22,7 +26,8 @@ LULU_C = /home/andrei/script_Python/lulu_c/lulu_c.py
 #LULU_INSTANCE_FILE = test_secure_disperse.lulu pi_disperse 3 60
 #LULU_INSTANCE_FILE = test_secure_disperse.lulu pi_disperse 10 0
 #LULU_INSTANCE_FILE = test_disperse.lulu pi_disperse 3 60
-LULU_INSTANCE_FILE = input_files/test_disperse.lulu pi_disperse 2 0
+#LULU_INSTANCE_FILE = input_files/test_disperse.lulu pi_disperse 2 0
+LULU_INSTANCE_FILE = input_files/segregation/segregation.lulu pi_segregate 2 0
 # path to the LULU headers
 LULU_HEADERS = ../lulu/src
 # path to the LULU C library
@@ -91,6 +96,32 @@ ifeq ($(SPECIAL),1)
   BFLAGS_AVR += -DREQUIRES_SPECIAL_BEHAVIOUR
 endif
 
+ifeq ($(IN_EXTEROCEPTIVE_CHECK_CRC),1)
+  CFLAGS += -DIN_EXTEROCEPTIVE_CHECK_CRC
+  BFLAGS += -DIN_EXTEROCEPTIVE_CHECK_CRC
+
+  #compilation flags for simulated version
+  SIM_CFLAGS += -DIN_EXTEROCEPTIVE_CHECK_CRC
+  #linking flags for simulated version
+  SIM_LFLAGS += -DIN_EXTEROCEPTIVE_CHECK_CRC
+
+  CFLAGS_AVR += -DIN_EXTEROCEPTIVE_CHECK_CRC
+  BFLAGS_AVR += -DIN_EXTEROCEPTIVE_CHECK_CRC
+endif
+
+ifeq ($(OUT_EXTEROCEPTIVE_AUTO_RESET_OUTPUT),1)
+  CFLAGS += -DOUT_EXTEROCEPTIVE_AUTO_RESET_OUTPUT
+  BFLAGS += -DOUT_EXTEROCEPTIVE_AUTO_RESET_OUTPUT
+
+  #compilation flags for simulated version
+  SIM_CFLAGS += -DOUT_EXTEROCEPTIVE_AUTO_RESET_OUTPUT
+  #linking flags for simulated version
+  SIM_LFLAGS += -DOUT_EXTEROCEPTIVE_AUTO_RESET_OUTPUT
+
+  CFLAGS_AVR += -DOUT_EXTEROCEPTIVE_AUTO_RESET_OUTPUT
+  BFLAGS_AVR += -DOUT_EXTEROCEPTIVE_AUTO_RESET_OUTPUT
+endif
+
 FLASH = -R .eeprom -R .fuse -R .lock -R .signature
 EEPROM = -j .eeprom --set-section-flags=.eeprom="alloc,load" --change-section-lma .eeprom=0
 
@@ -108,8 +139,13 @@ clean_hex:
 clean_sim:
 	rm -vf build/*
 
+ifeq ($(SPECIAL),1)
 build/lulu_kilobot: build/lulu_kilobot.o build/instance.o build/special_behaviour.o
 	$(CC) $(SIM_LFLAGS) $^ $(LULU_LIB) -o $@
+else
+build/lulu_kilobot: build/lulu_kilobot.o build/instance.o
+	$(CC) $(SIM_LFLAGS) $^ $(LULU_LIB) -o $@
+endif
 
 build/lulu_kilobot.o: src/lulu_kilobot.c src/instance.h $(LULU_HEADERS)/rules.h
 	$(CC) $(SIM_CFLAGS) $(USING_ID_SECURITY) -I$(LULU_HEADERS)/ src/lulu_kilobot.c -o $@

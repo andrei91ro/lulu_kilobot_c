@@ -118,7 +118,9 @@ void process_message() {
     //add objects received from this neighbor to the robot's in_global_env
 
     //if the crc has changed then the contents of the message have also changed and need processing
+    #ifdef IN_EXTEROCEPTIVE_CHECK_CRC
     if (crc != mydata->neighbors[i].prev_crc)
+    #endif
         //check all content bytes
         for (uint8_t byte_nr = INDEX_MSG_FIRST_CONTENT_BYTE; byte_nr <= INDEX_MSG_LAST_CONTENT_BYTE; byte_nr++) {
             //check each bit from this byte
@@ -241,6 +243,12 @@ void procInputModule() {
             //the rest of the message content was setup previously by setObjectBitmaskInMsgData()
             //we now calculate the CRC and reset message type to NORMAL
             setup_message();
+
+            //the Kilobot message was setup so we can safely clear the out_global_env multiset
+        #ifdef OUT_EXTEROCEPTIVE_AUTO_RESET_OUTPUT
+            clearMultisetEnv(&mydata->pcol.pswarm.out_global_env);
+            setObjectCountFromMultisetEnv(&mydata->pcol.pswarm.out_global_env, OBJECT_ID_E, 1);
+        #endif
         }
     #endif
 }
@@ -305,6 +313,7 @@ void loop() {
 #ifdef PCOL_SIM
     printi("\nLOOP for robot %d\n-------------------------\n", kilo_uid);
 #endif
+
     //if the previous step was the last one
     if (mydata->sim_result == SIM_STEP_RESULT_NO_MORE_EXECUTABLES) {
         //mark the end of the simulation and exit
@@ -336,8 +345,13 @@ void loop() {
         return;
     }
 #endif
+
     //transform sensor input into symbolic objects
     procInputModule();
+#if (defined SIMULATOR) && (DEBUG_PRINT == 0)
+    printd("\nP colony state before execution:");
+    printColonyState(&mydata->pcol, FALSE);
+#endif
     mydata->sim_result = pcolony_runSimulationStep(&mydata->pcol);
     //transform symbolic objects into effector commands
     procOutputModule();
@@ -424,7 +438,70 @@ char *cb_botinfo(void)
     for (uint8_t i = 0; i < MAX_NEIGHBORS; i++)
         if (mydata->neighbors[i].uid != NO_ID)
             p += sprintf (p, "n[%d]={%d, %d}, ", i, mydata->neighbors[i].uid, mydata->neighbors[i].distance);
+
+    printColonyState(&mydata->pcol, FALSE);
     return botinfo_buffer;
+}
+#endif
+
+//P colony debug functions (taken from simulator.c)
+#if (defined SIMULATOR) && (DEBUG_PRINT == 0)
+char outputBuffer[255];
+
+char* printMultisetEnv(multiset_env_t *multiset) {
+    memset(outputBuffer, '\0', 255);
+    for (uint8_t i = 0; i < multiset->size; i++)
+        if (multiset->items[i].id != NO_OBJECT)
+            sprintf(outputBuffer, "%s '%s': %d, ", outputBuffer, objectNames[multiset->items[i].id], multiset->items[i].nr);
+    return outputBuffer;
+}
+
+char* printMultisetObj(multiset_obj_t *multiset) {
+    memset(outputBuffer, '\0', 255);
+    for (uint8_t i = 0; i < multiset->size; i++)
+        if (multiset->items[i] != NO_OBJECT)
+            sprintf(outputBuffer, "%s '%s', ", outputBuffer, objectNames[multiset->items[i]]);
+    return outputBuffer;
+}
+
+char* printProgram(Program_t *program) {
+    memset(outputBuffer, '\0', 255);
+    for (uint8_t i = 0; i < program->nr_rules; i++)
+        //if this is a non-conditional rule
+        if (program->rules[i].type < RULE_TYPE_CONDITIONAL_EVOLUTION_EVOLUTION)
+            // x -> y
+            sprintf(outputBuffer, "%s %s%s%s, ", outputBuffer,
+                    objectNames[program->rules[i].lhs],
+                    ruleNames[program->rules[i].type],
+                    objectNames[program->rules[i].rhs]);
+        else
+            // x -> y / z -> w
+            sprintf(outputBuffer, "%s %s%s%s / %s%s%s, ", outputBuffer,
+                    objectNames[program->rules[i].lhs],
+                    ruleNames[lookupFirst[program->rules[i].type - RULE_TYPE_CONDITIONAL_EVOLUTION_EVOLUTION]],
+                    objectNames[program->rules[i].rhs],
+                    // alternative fields
+                    objectNames[program->rules[i].alt_lhs],
+                    ruleNames[lookupSecond[program->rules[i].type - RULE_TYPE_CONDITIONAL_EVOLUTION_EVOLUTION]],
+                    objectNames[program->rules[i].alt_rhs]);
+
+    return outputBuffer;
+}
+
+void printColonyState(Pcolony_t *pcol, bool with_programs) {
+
+    printf("\n \e[32m   Pcolony.env = [%s]\e[0m", printMultisetEnv(&pcol->env));
+    printf("\n \e[34m   Pswarm.global_env = [%s]\e[0m", printMultisetEnv(&pcol->pswarm.global_env));
+    printf("\n \e[35m   Pswarm.in_global_env = [%s]\e[0m", printMultisetEnv(&pcol->pswarm.in_global_env));
+    printf("\n \e[36m   Pswarm.out_global_env = [%s]\e[0m", printMultisetEnv(&pcol->pswarm.out_global_env));
+    for (uint8_t i = 0; i < pcol->nr_agents; i++) {
+        printf("\n    %s.obj = [%s];", agentNames[i], printMultisetObj(&pcol->agents[i].obj));
+        if (with_programs) {
+            printf(" nr_programs = %d", pcol->agents[i].nr_programs);
+            for (uint8_t prg_nr = 0; prg_nr < pcol->agents[i].nr_programs; prg_nr++)
+                printf("\n        P%d = < %s >", prg_nr, printProgram(&pcol->agents[i].programs[prg_nr]));
+        }
+    }
 }
 #endif
 
