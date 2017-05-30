@@ -26,8 +26,8 @@ LULU_C = /home/andrei/script_Python/lulu_c/lulu_c.py
 #LULU_INSTANCE_FILE = test_secure_disperse.lulu pi_disperse 3 60
 #LULU_INSTANCE_FILE = test_secure_disperse.lulu pi_disperse 10 0
 #LULU_INSTANCE_FILE = test_disperse.lulu pi_disperse 3 60
-#LULU_INSTANCE_FILE = input_files/test_disperse.lulu pi_disperse 2 0
-LULU_INSTANCE_FILE = input_files/segregation/segregation.lulu pi_segregate 2 0
+LULU_INSTANCE_FILE = input_files/test_disperse.lulu pi_disperse 2 0
+#LULU_INSTANCE_FILE = input_files/segregation/segregation.lulu pi_segregate 2 0
 # path to the LULU headers
 LULU_HEADERS = ../lulu/src
 # path to the LULU C library
@@ -163,8 +163,13 @@ build/special_behaviour.o: src/special_behaviour.h src/special_behaviour.c src/l
 
 hex: build_hex/lulu_kilobot.hex
 
+ifeq ($(SPECIAL),1)
 build_hex/lulu_kilobot.elf: build_hex/lulu_kilobot.o build_hex/instance.o build_hex/special_behaviour.o
 	$(CC-AVR) $(BFLAGS_AVR) $^ $(LULU_LIB_AVR) $(KILOLIB_LIB) -o $@
+else
+build_hex/lulu_kilobot.elf: build_hex/lulu_kilobot.o build_hex/instance.o
+	$(CC-AVR) $(BFLAGS_AVR) $^ $(LULU_LIB_AVR) $(KILOLIB_LIB) -o $@
+endif
 
 build_hex/lulu_kilobot.o: src/lulu_kilobot.c src/instance.h $(LULU_HEADERS)/rules.h
 	$(CC-AVR) $(CFLAGS_AVR) $(USING_ID_SECURITY) -I$(LULU_HEADERS) -I$(KILOMBO_HEADERS_AVR)/ src/lulu_kilobot.c -o $@
