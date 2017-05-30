@@ -163,8 +163,13 @@ build/special_behaviour.o: src/special_behaviour.h src/special_behaviour.c src/l
 
 hex: build_hex/lulu_kilobot.hex
 
+ifeq ($(SPECIAL),1)
 build_hex/lulu_kilobot.elf: build_hex/lulu_kilobot.o build_hex/instance.o build_hex/special_behaviour.o
 	$(CC-AVR) $(BFLAGS_AVR) $^ $(LULU_LIB_AVR) $(KILOLIB_LIB) -o $@
+else
+build_hex/lulu_kilobot.elf: build_hex/lulu_kilobot.o build_hex/instance.o
+	$(CC-AVR) $(BFLAGS_AVR) $^ $(LULU_LIB_AVR) $(KILOLIB_LIB) -o $@
+endif
 
 build_hex/lulu_kilobot.o: src/lulu_kilobot.c src/instance.h $(LULU_HEADERS)/rules.h
 	$(CC-AVR) $(CFLAGS_AVR) $(USING_ID_SECURITY) -I$(LULU_HEADERS) -I$(KILOMBO_HEADERS_AVR)/ src/lulu_kilobot.c -o $@
