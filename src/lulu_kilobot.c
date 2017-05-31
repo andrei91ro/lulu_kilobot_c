@@ -129,7 +129,7 @@ void process_message() {
                 if (data[byte_nr] & (1<<j)) {
                     received_obj = (byte_nr - INDEX_MSG_FIRST_CONTENT_BYTE) * 8 + j;
                     //set the corresponding bit in the in_global_env
-                    setObjectCountFromMultisetEnv(&mydata->pcol.pswarm.in_global_env,
+                    setObjectCountFromMultisetEnv(&mydata->pcol->pswarm.in_global_env,
                             received_obj, // object_id = byte_nr * 8 + bit_nr
                             COUNT_INCREMENT);
                 #ifdef PCOL_SIM
@@ -172,9 +172,9 @@ void procInputModule() {
     bool dist_big = TRUE;
 
     #ifdef USING_AGENT_MSG_DISTANCE
-        for (uint8_t obj_id = 0; obj_id < mydata->pcol.n; obj_id++) {
+        for (uint8_t obj_id = 0; obj_id < mydata->pcol->n; obj_id++) {
             #ifdef USING_OBJECT_D_ALL
-                if (mydata->pcol.agents[AGENT_MSG_DISTANCE].obj.items[obj_id] == OBJECT_ID_D_ALL) {
+                if (mydata->pcol->agents[AGENT_MSG_DISTANCE].obj.items[obj_id] == OBJECT_ID_D_ALL) {
                     for (i = 0; i < MAX_NEIGHBORS; i++)
                         if (mydata->neighbors[i].distance < PARAM_DISTANCE_THRESHOLD && mydata->neighbors[i].uid != NO_ID) {
                             dist_big = FALSE;
@@ -182,13 +182,13 @@ void procInputModule() {
                         }
                     //if (dist_big || mydata->nr_neighbors == 0)
                     if (dist_big)
-                        replaceObjInMultisetObj(&mydata->pcol.agents[AGENT_MSG_DISTANCE].obj, OBJECT_ID_D_ALL, OBJECT_ID_B_ALL);
+                        replaceObjInMultisetObj(&mydata->pcol->agents[AGENT_MSG_DISTANCE].obj, OBJECT_ID_D_ALL, OBJECT_ID_B_ALL);
                     else
-                        replaceObjInMultisetObj(&mydata->pcol.agents[AGENT_MSG_DISTANCE].obj, OBJECT_ID_D_ALL, OBJECT_ID_S_ALL);
+                        replaceObjInMultisetObj(&mydata->pcol->agents[AGENT_MSG_DISTANCE].obj, OBJECT_ID_D_ALL, OBJECT_ID_S_ALL);
                 }
             #endif
             #ifdef USING_OBJECT_D_NEXT
-                if (mydata->pcol.agents[AGENT_MSG_DISTANCE].obj.items[obj_id] == OBJECT_ID_D_NEXT) {
+                if (mydata->pcol->agents[AGENT_MSG_DISTANCE].obj.items[obj_id] == OBJECT_ID_D_NEXT) {
                     bool isAtLeastOneRobotClose = FALSE;
 
                     for (i = 0; i < MAX_NEIGHBORS; i++)
@@ -214,31 +214,31 @@ void procInputModule() {
 
                             //if (dist_big || mydata->nr_neighbors == 0)
                             if (mydata->neighbors[i].distance < PARAM_DISTANCE_THRESHOLD)
-                                replaceObjInMultisetObj(&mydata->pcol.agents[AGENT_MSG_DISTANCE].obj, OBJECT_ID_D_NEXT, OBJECT_ID_S_0 + mydata->neighbors[i].symbolic_id);
+                                replaceObjInMultisetObj(&mydata->pcol->agents[AGENT_MSG_DISTANCE].obj, OBJECT_ID_D_NEXT, OBJECT_ID_S_0 + mydata->neighbors[i].symbolic_id);
                             else
-                                replaceObjInMultisetObj(&mydata->pcol.agents[AGENT_MSG_DISTANCE].obj, OBJECT_ID_D_NEXT, OBJECT_ID_B_0 + mydata->neighbors[i].symbolic_id);
+                                replaceObjInMultisetObj(&mydata->pcol->agents[AGENT_MSG_DISTANCE].obj, OBJECT_ID_D_NEXT, OBJECT_ID_B_0 + mydata->neighbors[i].symbolic_id);
 
                             mydata->neighbor_index++;
                     } else
-                        replaceObjInMultisetObj(&mydata->pcol.agents[AGENT_MSG_DISTANCE].obj, OBJECT_ID_D_NEXT, OBJECT_ID_B_ALL);
+                        replaceObjInMultisetObj(&mydata->pcol->agents[AGENT_MSG_DISTANCE].obj, OBJECT_ID_D_NEXT, OBJECT_ID_B_ALL);
                 }
             #endif
         }
     #endif
 
     #ifdef USING_IN_OUT_EXTEROCEPTIVE_RULES
-        if (areObjectsInMultisetEnv(&mydata->pcol.pswarm.out_global_env, OBJECT_ID_END, NO_OBJECT)) {
+        if (areObjectsInMultisetEnv(&mydata->pcol->pswarm.out_global_env, OBJECT_ID_END, NO_OBJECT)) {
             //reset message contents to 0
             for (i = INDEX_MSG_FIRST_CONTENT_BYTE; i <= INDEX_MSG_LAST_CONTENT_BYTE; i++)
                 mydata->msg_tx.data[i] = 0;
 
             //compose message WITH Bitmasks
-            for (i = 0; i < mydata->pcol.nr_A; i++)
-                if (mydata->pcol.pswarm.out_global_env.items[i].id != OBJECT_ID_END &&
-                        mydata->pcol.pswarm.out_global_env.items[i].id != OBJECT_ID_E &&
-                        mydata->pcol.pswarm.out_global_env.items[i].id != NO_OBJECT &&
-                        mydata->pcol.pswarm.out_global_env.items[i].nr > 0)
-                    setObjectBitmaskInMsgData(mydata->pcol.pswarm.out_global_env.items[i].id);
+            for (i = 0; i < mydata->pcol->nr_A; i++)
+                if (mydata->pcol->pswarm.out_global_env.items[i].id != OBJECT_ID_END &&
+                        mydata->pcol->pswarm.out_global_env.items[i].id != OBJECT_ID_E &&
+                        mydata->pcol->pswarm.out_global_env.items[i].id != NO_OBJECT &&
+                        mydata->pcol->pswarm.out_global_env.items[i].nr > 0)
+                    setObjectBitmaskInMsgData(mydata->pcol->pswarm.out_global_env.items[i].id);
 
             //the rest of the message content was setup previously by setObjectBitmaskInMsgData()
             //we now calculate the CRC and reset message type to NORMAL
@@ -246,8 +246,8 @@ void procInputModule() {
 
             //the Kilobot message was setup so we can safely clear the out_global_env multiset
         #ifdef OUT_EXTEROCEPTIVE_AUTO_RESET_OUTPUT
-            clearMultisetEnv(&mydata->pcol.pswarm.out_global_env);
-            setObjectCountFromMultisetEnv(&mydata->pcol.pswarm.out_global_env, OBJECT_ID_E, 1);
+            clearMultisetEnv(&mydata->pcol->pswarm.out_global_env);
+            setObjectCountFromMultisetEnv(&mydata->pcol->pswarm.out_global_env, OBJECT_ID_E, 1);
         #endif
         }
     #endif
@@ -255,8 +255,8 @@ void procInputModule() {
 
 void procOutputModule() {
     #ifdef USING_AGENT_MOTION
-        for (uint8_t obj_id = 0; obj_id < mydata->pcol.agents[AGENT_MOTION].obj.size; obj_id++)
-            switch (mydata->pcol.agents[AGENT_MOTION].obj.items[obj_id]) {
+        for (uint8_t obj_id = 0; obj_id < mydata->pcol->agents[AGENT_MOTION].obj.size; obj_id++)
+            switch (mydata->pcol->agents[AGENT_MOTION].obj.items[obj_id]) {
                 case OBJECT_ID_M_0: set_motion(MOTION_STOP); break;
                 case OBJECT_ID_M_S: set_motion(MOTION_STRAIGHT); break;
                 case OBJECT_ID_M_L: set_motion(MOTION_LEFT); break;
@@ -265,8 +265,8 @@ void procOutputModule() {
     #endif
 
     #ifdef USING_AGENT_LED_RGB
-        for (uint8_t obj_id = 0; obj_id < mydata->pcol.agents[AGENT_LED_RGB].obj.size; obj_id++)
-            switch (mydata->pcol.agents[AGENT_LED_RGB].obj.items[obj_id]) {
+        for (uint8_t obj_id = 0; obj_id < mydata->pcol->agents[AGENT_LED_RGB].obj.size; obj_id++)
+            switch (mydata->pcol->agents[AGENT_LED_RGB].obj.items[obj_id]) {
                 case OBJECT_ID_C_0: mydata->current_led_color = COLOR_OFF; break;
                 case OBJECT_ID_C_R: mydata->current_led_color = COLOR_RED; break;
                 case OBJECT_ID_C_G: mydata->current_led_color = COLOR_GREEN; break;
@@ -350,9 +350,9 @@ void loop() {
     procInputModule();
 #if (defined SIMULATOR) && (DEBUG_PRINT == 0)
     printd("\nP colony state before execution:");
-    printColonyState(&mydata->pcol, FALSE);
+    printColonyState(mydata->pcol, FALSE);
 #endif
-    mydata->sim_result = pcolony_runSimulationStep(&mydata->pcol);
+    mydata->sim_result = pcolony_runSimulationStep(mydata->pcol);
     //transform symbolic objects into effector commands
     procOutputModule();
 #ifdef KILOBOT
@@ -382,7 +382,8 @@ void setup() {
     #endif
 
     //initialize Pcolony
-    lulu_init(&mydata->pcol);
+    mydata->pcol = &pcol;
+    //lulu_init(&mydata->pcol);
 
     #ifdef NEEDING_WILDCARD_EXPANSION
         expand_pcolony(&mydata->pcol, kilo_uid);
@@ -420,7 +421,7 @@ void setup() {
     setup_message();
 
     //initialize Pcolony
-    lulu_init(&mydata->pcol);
+    //lulu_init(&mydata->pcol);
 
     #ifdef NEEDING_WILDCARD_EXPANSION
         expand_pcolony(&mydata->pcol, kilo_uid);
@@ -439,7 +440,7 @@ char *cb_botinfo(void)
         if (mydata->neighbors[i].uid != NO_ID)
             p += sprintf (p, "n[%d]={%d, %d}, ", i, mydata->neighbors[i].uid, mydata->neighbors[i].distance);
 
-    printColonyState(&mydata->pcol, FALSE);
+    printColonyState(mydata->pcol, FALSE);
     return botinfo_buffer;
 }
 #endif
