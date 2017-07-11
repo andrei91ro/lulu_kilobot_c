@@ -348,7 +348,7 @@ void loop() {
 
     //transform sensor input into symbolic objects
     procInputModule();
-#if (defined SIMULATOR) && (DEBUG_PRINT == 0)
+#if (defined SIMULATOR) && (defined(DEBUG_PRINT))
     printd("\nP colony state before execution:");
     printColonyState(&mydata->pcol, FALSE);
 #endif
