@@ -61,6 +61,10 @@ This parameter controls the verbosity of the `Lulu_kilobot` controller. The acce
 * 1 (INFO)
 * 2 (RELEASE) - no messages are printed
 
+# API Documentation
+
+More detailed information can be found on the project [documentation page](https://andrei91ro.github.io/lulu_kilobot_c).
+
 # Authors
 Andrei George Florea, [Cătălin Buiu](http://catalin.buiu.net)
 
