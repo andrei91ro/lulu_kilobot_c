@@ -25,9 +25,9 @@ The [Kilombo](https://github.com/JIC-CSB/kilombo) library has other library depe
 
 After installing all components and adjusting the corresponding paths (using Makefile parameters), simply execute the following list of commands, in the project folder:
 
-`mkdir build build_hex
+`mkdir build build_hex`
 
-make`
+`make`
 
 
 It is important to ensure that both [Lulu\_pcol\_sim\_C](https://github.com/andrei91ro/lulu_pcol_sim_c) and [Lulu\_C](https://github.com/andrei91ro/lulu_c) use the same branch (i.e `master` or `initialize_progmem`) as Lulu_kilobot. Different branches are not compatible.
