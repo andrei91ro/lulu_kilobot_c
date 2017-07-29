@@ -1,5 +1,9 @@
 # Kilobot robot controller modelled using a P/XP colony, written in C
 
+This C application allows for the control of a Kilobot robot using P colonies.
+
+This application has two distinct parts: (1) a PC simulation using the Kilombo simulator and (2) a firmware generation component that can be used to control real robots. Both components use the same C source code.
+
 # Requirements
 * Compilers:
   * GCC - for simulations on a computer
