@@ -1,0 +1,4 @@
+<map id="USERDATA" name="USERDATA">
+<area shape="rect" id="node2" href="$struct__received__message.html" title="Structure that holds information about a received message This information cannot be processed imedia..." alt="" coords="5,5,156,32"/>
+<area shape="rect" id="node3" href="$struct___neighbor.html" title="Structure that holds information about a recent neighbor robot. " alt="" coords="181,5,269,32"/>
+</map>
