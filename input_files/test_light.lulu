@@ -1,0 +1,48 @@
+pswarm = {
+    global_env = {};
+    C = {pi_disperse};
+
+        pi_disperse = {
+            A = {m_0, m_S, m_L, m_R, c_0, c_R, c_G, c_B, c_W, l, l_S, l_B};
+            e = e;
+            f = f;
+            n = 3;
+            env = {};
+            B = {command, led_rgb, light_sensor};
+                command = ({e, e, l};
+                        < e->e, e->e, l<->e >,
+
+                        < e->c_G, e->e, e<->l_S >,
+                        < e->c_R, e->e, e<->l_B >,
+
+                        < c_G<->e, e->e, l_S->l >,
+                        < c_R<->e, e->e, l_B->l >,
+                );
+
+                led_rgb = ({e, e, e};
+                        # process color white
+                        < e->e, e->e, e<->c_W >,
+                        < e->e, e->e, c_W->e>,
+
+                        # process color green
+                        < e->e, e->e, e<->c_G >,
+                        < e->e, e->e, c_G->e>,
+
+                        # process color red
+                        < e->e, e->e, e<->c_R >,
+                        < e->e, e->e, c_R->e>,
+
+                        # process color blue
+                        < e->e, e->e, e<->c_B >,
+                        < e->e, e->e, c_B->e>,
+                );
+
+                light_sensor = ({e, e, e};
+                        # process distance request
+                        < e->e, e->e,  e<->l >,
+                        < e->e, e->e, l_S<->e >,
+                        < e->e, e->e,  l_B<->e >,
+                );
+        };
+
+}

@@ -1,0 +1,94 @@
+pswarm = {
+    global_env = {};
+    in_global_env = {};
+    out_global_env = {};
+    C = {xp_sync};
+
+        xp_sync = {
+            A = {m_0, m_S, m_L, m_R, c_0, c_R, c_G, c_B, c_W, END, s_from_*, s_from_%id, start_*, start_%id, l_m, l_m_s, W};
+            e = e;
+            f = f;
+            n = 3;
+            env = {start_0, f, f, f, f, f, W};
+            B = {command, motion, led_rgb, heartbeat};
+                command = ({e, e, e};
+                        # subtraction triggered if start_%id is in Pcol.env
+                        < e->e, e<->f, e<->start_%id >,
+                        < e->l_m, f->c_G, start_%id->m_S >,
+
+                        # subtraction triggered if l_m is in Pcol.env
+                        < e<->l_m, e<->f / e->e, e->e >,
+                        # the subtraction was possible
+                        < l_m->l_m, f->c_G, e->m_S >,
+
+                        # publish commands and try to restart the subtraction
+                        < l_m<->e, c_G<->e, m_S<->e >,
+
+                        # the subtraction is finished, signal the other robots that I am done
+                        < l_m->END, e->s_from_%id, e->m_0 >,
+                        < END<=O>e, s_from_%id<=O>e, m_0<->e >,
+                        #< e<=O>END, e<=O>s_from_%id, e->e >,
+
+                        # AFTER SIGNAL WAS RECEIVED
+                        < e<I=>s_from_0, e->e, e->e >,
+                        # transform the received signal into a subtraction trigger
+                        < s_from_0->l_m_s, e->c_R, e->m_L >,
+                        # publish commands (AFTER SIGNAL) and try to restart the subtraction
+                        < l_m_s<->e, c_R<->e, m_L<->e >,
+
+                        # subtraction triggered if l_m_s is in Pcol.env
+                        < e<->l_m_s, e<->f / e->e, e->e >,
+                        # the subtraction was possible
+                        < l_m_s->l_m_s, f->c_R, e->m_L >,
+
+                        # the subtraction is finished, stop moving
+                        < l_m_s->e, e->c_0, e->m_0 >,
+                        < e->e, c_0<->e, m_0<->e >,
+                );
+
+                motion = ({e, e, e};
+                        # process move stop
+                        < e->e, e->e, e<->m_0 >,
+                        < e->e, e->e, m_0->e>,
+
+                        # process move straight
+                        < e->e, e->e, e<->m_S >,
+                        < e->e, e->e, m_S->e>,
+
+                        # process move left
+                        < e->e, e->e, e<->m_L >,
+                        < e->e, e->e, m_L->e>,
+
+                        # process move right
+                        < e->e, e->e, e<->m_R >,
+                        < e->e, e->e, m_R->e>);
+
+                led_rgb = ({e, e, e};
+                        # process color white
+                        < e->e, e->e, e<->c_W >,
+                        < e->e, e->e, c_W->e>,
+
+                        # process color green
+                        < e->e, e->e, e<->c_G >,
+                        < e->e, e->e, c_G->e>,
+
+                        # process color red
+                        < e->e, e->e, e<->c_R >,
+                        < e->e, e->e, c_R->e>,
+
+                        # process color blue
+                        < e->e, e->e, e<->c_B >,
+                        < e->e, e->e, c_B->e>
+
+                        # process color off
+                        < e->e, e->e, e<->c_0 >,
+                        < e->e, e->e, c_0->e>
+                );
+
+                heartbeat = ({e, e, e};
+                        < e->e, e->e, e<->s_from_0 / e<->W >,
+                        < e->e, s_from_0->e,  W->e >,
+                        < e->e, W<->e, e->e >);
+        };
+
+}

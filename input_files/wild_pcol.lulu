@@ -1,0 +1,30 @@
+pswarm = {
+    global_env = {S_%id, B_*};
+    C = {pi};
+        pi = {
+            A = {l_m, B_*, B_%id, S_%id, ID_%id, X_*, m_0, m_L, m_R, m_S};
+            e = e;
+            f = f;
+            n = 2;
+            env = {B_%id, l_m, X_*};
+            B = {command, miscare, xtest};
+                command = ({S_%id, e};
+                        < S_%id->B_%id, e->e >
+                );
+
+                miscare = ({e, e};
+                        < e->ID_%id, e<->B_%id >,
+                        < ID_%id->e, B_%id->e >
+                );
+
+                xtest = ({e, e};
+                        < e->f, e<->X_* >,
+                        < e->f, f->e>,
+                        < f->e, X_*<=>e >
+                        #< e->e, e<->X_0 >,
+                        #< e->e, X_0<=>e >
+                        #< e->e, e<->X_2 >,
+                        #< e->e, X_2<=>e >
+                );
+        };
+}

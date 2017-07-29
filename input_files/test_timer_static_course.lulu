@@ -1,0 +1,98 @@
+pswarm = {
+    C = {pi_static};
+
+        pi_static = {
+            A = {l_m, m_0, m_S, m_L, m_R, c_R, c_G, c_B, c_W, c_0, ST1, ST2, ST3, ST4, ST5, ST6, ST7, ST8, ST9, ST10, t_start, t_stop, T_ON, T_I};
+            e = e;
+            f = f;
+            n = 4;
+            env = {};
+            B = {command, motion, led_rgb, timer};
+                command = ({t_start, e, e, e};
+                        #< e->t_start, e->e, e->e >,
+                        < t_start<->e, e->ST1, e->e, e->e >,
+
+                        # go to ST2_straight_green
+                        < e<->T_I, e->c_G, e->m_S, ST1->ST1 >,
+                        < T_I->e, c_G<->e, m_S<->e, ST1->ST2 >
+
+                        # go to ST3_left_red
+                        < e<->T_I, e->c_R, e->m_L, ST2->ST2 >,
+                        < T_I->e, c_R<->e, m_L<->e, ST2->ST3 >
+
+                        # go to ST4_left_red
+                        < e<->T_I, e->c_R, e->m_L, ST3->ST3 >,
+                        < T_I->e, c_R<->e, m_L<->e, ST3->ST4 >
+
+                        # go to ST5_straight_green
+                        < e<->T_I, e->c_G, e->m_S, ST4->ST4 >,
+                        < T_I->e, c_G<->e, m_S<->e, ST4->ST5 >
+
+                        # go to ST6_right_blue
+                        < e<->T_I, e->c_B, e->m_R, ST5->ST5 >,
+                        < T_I->e, c_B<->e, m_R<->e, ST5->ST6 >
+
+                        # go to ST7_right_blue
+                        < e<->T_I, e->c_B, e->m_R, ST6->ST6 >,
+                        < T_I->e, c_B<->e, m_R<->e, ST6->ST7 >
+
+                        # go to ST8_straight_green
+                        < e<->T_I, e->c_G, e->m_S, ST7->ST7 >,
+                        < T_I->e, c_G<->e, m_S<->e, ST7->ST8 >
+
+                        # go to ST9_straight_green
+                        < e<->T_I, e->c_G, e->m_S, ST8->ST8 >,
+                        < T_I->e, c_G<->e, m_S<->e, ST8->ST9 >
+
+                        # go to ST10_stop_white
+                        < e<->T_I, e->c_W, e->m_0, ST9->ST9 >,
+                        < T_I->e, c_W<->e, m_0<->e, ST9->ST10 >
+
+                        # stop the timer
+                        < e->t_stop, e->e, e->e, ST10->ST10 >
+                        < t_stop<->e, e->e, e->e, ST10->e >
+                );
+
+                motion = ({e, e, e, e};
+                        # process move stop
+                        < e->e, e->e, e->e, e<->m_0 >,
+                        < e->e, e->e, e->e, m_0->e>,
+
+                        # process move straight
+                        < e->e, e->e, e->e, e<->m_S >,
+                        < e->e, e->e, e->e, m_S->e>,
+
+                        # process move left
+                        < e->e, e->e, e->e, e<->m_L >,
+                        < e->e, e->e, e->e, m_L->e>,
+
+                        # process move right
+                        < e->e, e->e, e->e, e<->m_R >,
+                        < e->e, e->e, e->e, m_R->e>);
+
+                led_rgb = ({e, e, e, e};
+                        # process color white
+                        < e->e, e->e, e->e, e<->c_W >,
+                        < e->e, e->e, e->e, c_W->e>,
+
+                        # process color green
+                        < e->e, e->e, e->e, e<->c_G >,
+                        < e->e, e->e, e->e, c_G->e>,
+
+                        # process color red
+                        < e->e, e->e, e->e, e<->c_R >,
+                        < e->e, e->e, e->e, c_R->e>,
+
+                        # process color blue
+                        < e->e, e->e, e->e, e<->c_B >,
+                        < e->e, e->e, e->e, c_B->e>);
+
+                timer = ({e, e, e, e};
+                        < e->e, e->e, e->e, e<->t_start >,
+                        # receive timer stop object NO MATTER if the timer is on or not
+                        < T_ON->e / e->e, e->e, e->e, e<->t_stop >,
+                        # send a timer interrupt
+                        < T_ON->T_ON, T_I<->e / e->e, e->e, e->e >);
+        };
+
+}
