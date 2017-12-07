@@ -104,7 +104,7 @@ build/instance.o: src/instance.h src/instance.c $(LULU_HEADERS)/rules.h
 	$(CC) $(CFLAGS) src/instance.c -I$(LULU_HEADERS)/ -o $@
 
 src/instance.h src/instance.c:
-	python $(LULU_C) $(LULU_INSTANCE_FILE) src/instance
+	$(LULU_C) $(LULU_INSTANCE_FILE) src/instance
 
 # --------------------------------------------------------------------------------------------------------------------
 # The following rules build for the kilobot
