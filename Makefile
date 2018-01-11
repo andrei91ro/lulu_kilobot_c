@@ -39,35 +39,35 @@ KILOLIB_LIB = $(KILOLIB_HEADERS)/build/kilolib.a
 
 ifeq ($(DEBUG),1)
   #debug & testing flags
-  CFLAGS = -Wall -g -O0 -fbuiltin -c -DPCOL_SIM -DDEBUG_PRINT=0
-  BFLAGS = -Wall -g -O0 -fbuiltin -DPCOL_SIM -DDEBUG_PRINT=0
+  CFLAGS = -Wall -g -O0 -fbuiltin -c -DPCOL_SIM -DDEBUG_PRINT=0 -std=c99
+  BFLAGS = -Wall -g -O0 -fbuiltin -DPCOL_SIM -DDEBUG_PRINT=0 -std=c99
 
   #compilation flags for simulated version
-  SIM_CFLAGS = -c -g -O0 -Wall -std=c99 -DPCOL_SIM -DDEBUG_PRINT=0
+  SIM_CFLAGS = -c -g -O0 -Wall -DPCOL_SIM -DDEBUG_PRINT=0 -std=c99
   #linking flags for simulated version
-  SIM_LFLAGS = -lsim -lSDL -lm -ljansson -DPCOL_SIM -DDEBUG_PRINT=0
+  SIM_LFLAGS = -lsim -lSDL -lm -ljansson -DPCOL_SIM -DDEBUG_PRINT=0 -std=c99
 
   # compilation flags for kilobot (AVR) with serial message printing
-  CFLAGS_AVR = -c -mmcu=atmega328p -Wall -gdwarf-2 $(AVR_OPTIM) -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -DF_CPU=8000000 -DDEBUG_PRINT=0 -I$(KILOLIB_HEADERS) -DKILOBOT -Wl,-u,vfprintf -lprintf_min
+  CFLAGS_AVR = -c -mmcu=atmega328p -Wall -gdwarf-2 $(AVR_OPTIM) -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -DF_CPU=8000000 -DDEBUG_PRINT=0 -I$(KILOLIB_HEADERS) -DKILOBOT -Wl,-u,vfprintf -lprintf_min -std=c99
   # linking flags for kilobot (AVR) with serial message printing
-  BFLAGS_AVR = -mmcu=atmega328p -Wall -gdwarf-2 $(AVR_OPTIM) -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -DF_CPU=8000000 -DDEBUG_PRINT=0 -I$(KILOLIB_HEADERS) -DKILOBOT -Wl,-u,vfprintf -lprintf_min
+  BFLAGS_AVR = -mmcu=atmega328p -Wall -gdwarf-2 $(AVR_OPTIM) -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -DF_CPU=8000000 -DDEBUG_PRINT=0 -I$(KILOLIB_HEADERS) -DKILOBOT -Wl,-u,vfprintf -lprintf_min -std=c99
 
   # path to the LULU C library for AVR (with DEBUG functions included)
   LULU_LIB_AVR = ../lulu/build_hex/lulu_debug.a
 else
   #release flags
-  CFLAGS = -Wall -g -O2 -fbuiltin -c -DPCOL_SIM
-  BFLAGS = -Wall -g -O2 -fbuiltin -DPCOL_SIM
+  CFLAGS = -Wall -g -O2 -fbuiltin -c -DPCOL_SIM -std=c99
+  BFLAGS = -Wall -g -O2 -fbuiltin -DPCOL_SIM -std=c99
 
   #compilation flags for simulated version
-  SIM_CFLAGS = -c -g -O2 -Wall -std=c99 -DPCOL_SIM
+  SIM_CFLAGS = -c -g -O2 -Wall -DPCOL_SIM -std=c99
   #linking flags for simulated version
-  SIM_LFLAGS = -lsim -lSDL -lm -ljansson -DPCOL_SIM
+  SIM_LFLAGS = -lsim -lSDL -lm -ljansson -DPCOL_SIM -std=c99
 
   # compilation flags for kilobot (AVR) WITHOUT serial message printing
-  CFLAGS_AVR = -c -mmcu=atmega328p -Wall -gdwarf-2 $(AVR_OPTIM) -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -DF_CPU=8000000 -I$(KILOLIB_HEADERS) -DKILOBOT
+  CFLAGS_AVR = -c -mmcu=atmega328p -Wall -gdwarf-2 $(AVR_OPTIM) -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -DF_CPU=8000000 -I$(KILOLIB_HEADERS) -DKILOBOT -std=c99
   # linking flags for kilobot (AVR) WITHOUT serial message printing
-  BFLAGS_AVR = -mmcu=atmega328p -Wall -gdwarf-2 $(AVR_OPTIM) -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -DF_CPU=8000000 -I$(KILOLIB_HEADERS) -DKILOBOT
+  BFLAGS_AVR = -mmcu=atmega328p -Wall -gdwarf-2 $(AVR_OPTIM) -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -DF_CPU=8000000 -I$(KILOLIB_HEADERS) -DKILOBOT -std=c99
 
   # path to the LULU C library for AVR
   LULU_LIB_AVR = ../lulu/build_hex/lulu.a
